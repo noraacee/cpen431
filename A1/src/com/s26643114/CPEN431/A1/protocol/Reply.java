@@ -35,7 +35,7 @@ public class Reply {
     private static int getLength(byte[] reply) {
         int length = ByteOrder.leb2int(reply, LENGTH_UNIQUE_ID);
 
-        System.out.println("Length: " + length);
+        System.out.println("Secret Code Length: " + length);
 
         return length;
     }
