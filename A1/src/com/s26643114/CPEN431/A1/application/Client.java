@@ -17,7 +17,7 @@ public class Client {
     private static final String ERROR_IP = "An error has occurred when retrieving an ip address";
     private static final String ERROR_NUMBER_FORMAT = "Second, third and fourth argument can only be integers";
     private static final String ERROR_SOCKET = "An error has occurred while creating the socket";
-    private static final String ERROR_TIMEOUT = "The request has been timed out";
+    private static final String ERROR_TIMEOUT = "The request has been timed out. Please try again with a longer timeout duration.";
 
     private static final String IP = "162.219.6.226";
 
