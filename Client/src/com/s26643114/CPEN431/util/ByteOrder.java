@@ -1,4 +1,4 @@
-package com.s26643114.CPEN431.A1.util;
+package com.s26643114.CPEN431.util;
 
 import java.io.*;
 

@@ -1,8 +1,8 @@
-package com.s26643114.CPEN431.A1.protocol;
+package com.s26643114.CPEN431.protocol;
 
 
-import com.s26643114.CPEN431.A1.util.ByteOrder;
-import com.s26643114.CPEN431.A1.util.StringUtils;
+import com.s26643114.CPEN431.util.ByteOrder;
+import com.s26643114.CPEN431.util.StringUtils;
 
 import java.io.IOException;
 import java.net.DatagramPacket;

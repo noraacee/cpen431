@@ -1,4 +1,4 @@
-package com.s26643114.CPEN431.A1.util;
+package com.s26643114.CPEN431.util;
 
 /**
  * Various static routines to help with strings

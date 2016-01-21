@@ -1,7 +1,7 @@
-package com.s26643114.CPEN431.A1.application;
+package com.s26643114.CPEN431.application;
 
-import com.s26643114.CPEN431.A1.protocol.Reply;
-import com.s26643114.CPEN431.A1.protocol.Request;
+import com.s26643114.CPEN431.protocol.Reply;
+import com.s26643114.CPEN431.protocol.Request;
 
 import java.io.IOException;
 import java.net.*;
