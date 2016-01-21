@@ -7,9 +7,6 @@ import com.s26643114.CPEN431.util.StringUtils;
  * Handles reply side of the protocol
  */
 public class Reply {
-    public static final int LENGTH_PAYLOAD = 16000;
-    public static final int LENGTH_UNIQUE_ID = 16;
-
     /**
      * Parses the reply from the server to get the secret code
      *
@@ -21,7 +18,7 @@ public class Reply {
 
         byte[] secretCode = new byte[length];
 
-        System.arraycopy(reply, LENGTH_UNIQUE_ID + Integer.BYTES, secretCode, 0, length);
+        System.arraycopy(reply, Protocol.LENGTH_UNIQUE_ID + Integer.BYTES, secretCode, 0, length);
 
         return StringUtils.byteArrayToHexString(secretCode);
     }
@@ -33,7 +30,7 @@ public class Reply {
      * @return length of the byte array of the secret code
      */
     private static int getLength(byte[] reply) {
-        int length = ByteOrder.leb2int(reply, LENGTH_UNIQUE_ID);
+        int length = ByteOrder.leb2int(reply, Protocol.LENGTH_UNIQUE_ID);
 
         System.out.println("Secret Code Length: " + length);
 

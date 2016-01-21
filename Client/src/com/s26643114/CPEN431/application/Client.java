@@ -1,5 +1,6 @@
 package com.s26643114.CPEN431.application;
 
+import com.s26643114.CPEN431.protocol.Protocol;
 import com.s26643114.CPEN431.protocol.Reply;
 import com.s26643114.CPEN431.protocol.Request;
 
@@ -31,7 +32,7 @@ public class Client {
             InetAddress ip;
             int port;
             int payload;
-            int timeout = Request.TIMEOUT_SOCKET;
+            int timeout = Protocol.TIMEOUT_SOCKET;
 
             try {
                 switch (args.length) {
@@ -59,8 +60,9 @@ public class Client {
             }
 
             DatagramSocket client = new DatagramSocket();
+            client.setSoTimeout(timeout);
 
-            byte[] uniqueId = Request.createUniqueId(InetAddress.getLocalHost(), client.getPort());
+            byte[] uniqueId = Protocol.createUniqueId(InetAddress.getLocalHost(), client.getPort());
             try {
                 System.out.println("Sending ID: " + payload);
 
