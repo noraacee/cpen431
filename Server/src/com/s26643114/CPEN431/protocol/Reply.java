@@ -3,6 +3,7 @@ package com.s26643114.CPEN431.protocol;
 import com.s26643114.CPEN431.util.ByteOrder;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -35,19 +36,24 @@ public class Reply extends Protocol implements Runnable {
     private int port;
 
     private AtomicBoolean shutdown;
-    private ConcurrentHashMap<byte[], byte[]> store;
+    private ConcurrentHashMap<BigInteger, byte[]> store;
+    private ConcurrentHashMap<BigInteger, Thread> queue;
     private DatagramPacket requestPacket;
     private DatagramSocket server;
 
     private InetAddress ip;
 
-    public Reply(AtomicBoolean shutdown, DatagramSocket server, DatagramPacket requestPacket, ConcurrentHashMap<byte[], byte[]> store) {
+    public Reply(AtomicBoolean shutdown, DatagramSocket server, DatagramPacket requestPacket, ConcurrentHashMap<BigInteger, Thread> queue, ConcurrentHashMap<BigInteger, byte[]> store) {
         this.shutdown = shutdown;
         this.server = server;
         this.requestPacket = requestPacket;
+        this.queue = queue;
         this.store = store;
     }
 
+    /**
+     * Checks the command and act accordingly. Sends a reply packet back to client with appropriate response.
+     */
     @Override
     public void run() {
         ip = requestPacket.getAddress();
@@ -57,6 +63,14 @@ public class Reply extends Protocol implements Runnable {
 
         uniqueId = new byte[LENGTH_UNIQUE_ID];
         System.arraycopy(request, 0, uniqueId, 0, LENGTH_UNIQUE_ID);
+        BigInteger uniqueIdInt = new BigInteger(uniqueId);
+
+        if (queue.contains(uniqueId)) {
+            synchronized (queue.get(uniqueId)) {
+                queue.get(uniqueId).interrupt();
+            }
+            return;
+        }
 
         DatagramPacket replyPacket;
         byte command = request[LENGTH_UNIQUE_ID];
@@ -85,40 +99,55 @@ public class Reply extends Protocol implements Runnable {
 
         try {
             server.send(replyPacket);
+
+            //starts retry thread with all information needed to resend a reply
+            Thread retryThread = new Thread(new Retry(server, replyPacket, uniqueIdInt, queue));
+            queue.put(uniqueIdInt, retryThread);
+            retryThread.start();
         } catch (IOException e) {
             System.out.println(ERROR_SEND + e.getMessage());
         }
     }
 
+    /**
+     * Get value from store with given key
+     */
     private DatagramPacket commandGet() {
         byte[] key = new byte[LENGTH_KEY];
         System.arraycopy(request, LENGTH_UNIQUE_ID + LENGTH_CODE, key, 0, LENGTH_KEY);
+        BigInteger keyInt = new BigInteger(key);
 
         try {
-            byte[] value = store.get(key);
-            if (value == null) {
+            byte[] value = store.get(keyInt);
+            if (value == null)
                 return createReplyPacket(ERROR_KEY);
-            } else {
+            else
                 return createReplyPacket(value);
-            }
         } catch (Exception e) {
             return createReplyPacket(ERROR_FAILURE);
         }
     }
 
+    /**
+     * Put key-value pair into store
+     */
     private DatagramPacket commandPut()  {
         byte[] key = new byte[LENGTH_KEY];
         System.arraycopy(request, LENGTH_UNIQUE_ID + LENGTH_CODE, key, 0, LENGTH_KEY);
+        BigInteger keyInt = new BigInteger(key);
+
         int valueLength = ByteOrder.leb2int(request, LENGTH_UNIQUE_ID + LENGTH_CODE + LENGTH_KEY, LENGTH_VALUE_LENGTH);
 
         if (valueLength < 1 || valueLength > 10000)
             return createReplyPacket(ERROR_LENGTH);
+        else if (store.size() == MAX_STORE)
+            return createReplyPacket(ERROR_MEMORY);
 
         byte[] value = new byte[valueLength];
         System.arraycopy(request, LENGTH_UNIQUE_ID + LENGTH_CODE + LENGTH_KEY + LENGTH_VALUE_LENGTH, value, 0, valueLength);
 
         try {
-            store.put(key, value);
+            store.put(keyInt, value);
             return createReplyPacket(ERROR_NONE);
         } catch (OutOfMemoryError e) {
             return createReplyPacket(ERROR_MEMORY);
@@ -127,12 +156,15 @@ public class Reply extends Protocol implements Runnable {
         }
     }
 
+    /**
+     * Remove key-value pair from store
+     */
     private DatagramPacket commandRemove() {
         byte[] key = new byte[LENGTH_KEY];
         System.arraycopy(request, LENGTH_UNIQUE_ID + LENGTH_CODE, key, 0, LENGTH_KEY);
-
+        BigInteger keyInt = new BigInteger(key);
         try {
-            if (store.remove(key) == null)
+            if (store.remove(keyInt) == null)
                 return createReplyPacket(ERROR_KEY);
             else
                 return createReplyPacket(ERROR_NONE);
@@ -141,6 +173,12 @@ public class Reply extends Protocol implements Runnable {
         }
     }
 
+    /**
+     * Creates a reply packet with an error code
+     *
+     * @param errorCode - code for client's request
+     * @return packet to send back to client
+     */
     private DatagramPacket createReplyPacket(byte errorCode) {
         byte[] reply = new byte[LENGTH_UNIQUE_ID + LENGTH_CODE];
 
@@ -151,6 +189,12 @@ public class Reply extends Protocol implements Runnable {
         return new DatagramPacket(reply, reply.length, ip, port);
     }
 
+    /**
+     * Creates a reply packet with value from store
+     *
+     * @param value - value retreived from store
+     * @returnpacket to send back to client
+     */
     private DatagramPacket createReplyPacket(byte[] value) {
         byte[] reply = new byte[LENGTH_UNIQUE_ID + LENGTH_CODE + LENGTH_VALUE_LENGTH + value.length];
 
@@ -162,8 +206,9 @@ public class Reply extends Protocol implements Runnable {
         reply[index] = ERROR_NONE;
         index += LENGTH_CODE;
 
-        byte[] valueLength = new byte[LENGTH_VALUE_LENGTH];
-        ByteOrder.int2leb(value.length, valueLength, index);
+        byte[] valueLength = new byte[Integer.BYTES];
+        ByteOrder.int2leb(value.length, valueLength, 0);
+        System.arraycopy(valueLength, 0, reply, index, LENGTH_VALUE_LENGTH);
         index += LENGTH_VALUE_LENGTH;
 
         System.arraycopy(value, 0, reply, index, value.length);

@@ -1,16 +1,18 @@
 package com.s26643114.CPEN431.protocol;
 
+/**
+ * Helper class with constants
+ */
 public class Protocol {
-    public static final int LENGTH_CODE = 1;
-    public static final int LENGTH_KEY = 32;
-    public static final int LENGTH_UNIQUE_ID = 16;
-    public static final int LENGTH_VALUE = 10000;
-    public static final int LENGTH_VALUE_LENGTH = 2;
+    protected static final int LENGTH_CODE = 1;
+    protected static final int LENGTH_KEY = 32;
+    protected static final int LENGTH_UNIQUE_ID = 16;
+    protected static final int LENGTH_VALUE = 10000;
+    protected static final int LENGTH_VALUE_LENGTH = 2;
 
-    public static byte[] extractUniqueId(byte[] request) {
-        byte[] uniqueId = new byte[LENGTH_UNIQUE_ID];
-        System.arraycopy(request, 0, uniqueId, 0, LENGTH_UNIQUE_ID);
+    protected static final int MAX_STORE = 100000; //max number of key-value pairs in store
 
-        return uniqueId;
-    }
+    protected static final int RETRIES = 3;
+
+    protected static final int TIMEOUT = 100; //Can be changed to longer according to client
 }

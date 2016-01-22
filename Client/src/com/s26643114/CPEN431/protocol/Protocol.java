@@ -9,15 +9,15 @@ import java.util.Arrays;
 import java.util.Random;
 
 public class Protocol {
-    public static final int LENGTH_IP = 4;
-    public static final int LENGTH_PAYLOAD_REQUEST = 4;
-    public static final int LENGTH_PAYLOAD_REPLY = 16000;
-    public static final int LENGTH_PORT = 2;
-    public static final int LENGTH_RANDOM_BYTES = 2;
-    public static final int LENGTH_TIME = 8;
-    public static final int LENGTH_UNIQUE_ID = 16;
+    protected static final int LENGTH_IP = 4;
+    protected static final int LENGTH_PAYLOAD_REQUEST = 4;
+    protected static final int LENGTH_PAYLOAD_REPLY = 16000;
+    protected static final int LENGTH_PORT = 2;
+    protected static final int LENGTH_RANDOM_BYTES = 2;
+    protected static final int LENGTH_TIME = 8;
+    protected static final int LENGTH_UNIQUE_ID = 16;
 
-    public static final int RETRIES = 3;
+    protected static final int RETRIES = 3;
     public static final int TIMEOUT_SOCKET = 100;
 
     /**

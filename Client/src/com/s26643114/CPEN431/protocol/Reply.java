@@ -3,10 +3,25 @@ package com.s26643114.CPEN431.protocol;
 import com.s26643114.CPEN431.util.ByteOrder;
 import com.s26643114.CPEN431.util.StringUtils;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * Handles reply side of the protocol
  */
-public class Reply {
+public class Reply extends Protocol implements Runnable {
+    private ConcurrentHashMap<byte[], Integer> queue;
+
+    public Reply(ConcurrentHashMap<byte[], Integer> queue) {
+        this.queue = queue;
+    }
+
+    @Override
+    public void run() {
+        while(true) {
+
+        }
+    }
+
     /**
      * Parses the reply from the server to get the secret code
      *

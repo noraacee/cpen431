@@ -1,6 +1,5 @@
 package com.s26643114.CPEN431.protocol;
 
-import com.s26643114.CPEN431.ut
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -10,20 +9,20 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Handles request side of the protocol
  */
-public class Request implements Runnable {
+public class Request extends Protocol implements Runnable {
     private byte[] uniqueId;
 
-    private ConcurrentHashMap<byte[], Integer> queue;
+    private ConcurrentHashMap<byte[], Thread> queue;
     private DatagramSocket client;
 
-    public Request(ConcurrentHashMap<byte[], Integer> queue, DatagramSocket client, byte[] uniqueId, DatagramPacket sendPacket) {
-        this.queue = queue;
+    public Request(DatagramSocket client, ConcurrentHashMap<byte[], Thread> queue, ip, port, uniqueId, ) {
         this.client = client;
+        this.queue = queue;
     }
 
     @Override
     public void run() {
-        queue
+
     }
 
     /**
