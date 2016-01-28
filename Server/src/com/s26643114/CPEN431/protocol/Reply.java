@@ -27,6 +27,7 @@ public class Reply extends Protocol implements Runnable {
     private static final byte ERROR_FAILURE = 0x04; //internal failure
     private static final byte ERROR_COMMAND = 0x05; //unrecognized command
     private static final byte ERROR_LENGTH = 0x06; // value length is invalid (cannot be less than 1 or more than 10000
+    private static final byte ERROR_VALUE = 0x07; // invalid value field
 
     private static final String ERROR_SEND = "Unable to send reply. Server returned with error: ";
 
@@ -37,13 +38,13 @@ public class Reply extends Protocol implements Runnable {
 
     private AtomicBoolean shutdown;
     private ConcurrentHashMap<BigInteger, byte[]> store;
-    private ConcurrentHashMap<BigInteger, Thread> queue;
+    private ConcurrentHashMap<BigInteger, DatagramPacket> queue;
     private DatagramPacket requestPacket;
     private DatagramSocket server;
 
     private InetAddress ip;
 
-    public Reply(AtomicBoolean shutdown, DatagramSocket server, DatagramPacket requestPacket, ConcurrentHashMap<BigInteger, Thread> queue, ConcurrentHashMap<BigInteger, byte[]> store) {
+    public Reply(AtomicBoolean shutdown, DatagramSocket server, DatagramPacket requestPacket, ConcurrentHashMap<BigInteger, DatagramPacket> queue, ConcurrentHashMap<BigInteger, byte[]> store) {
         this.shutdown = shutdown;
         this.server = server;
         this.requestPacket = requestPacket;
@@ -65,10 +66,14 @@ public class Reply extends Protocol implements Runnable {
         System.arraycopy(request, 0, uniqueId, 0, LENGTH_UNIQUE_ID);
         BigInteger uniqueIdInt = new BigInteger(uniqueId);
 
-        if (queue.contains(uniqueId)) {
-            synchronized (queue.get(uniqueId)) {
-                queue.get(uniqueId).interrupt();
+        DatagramPacket retry = queue.get(uniqueIdInt);
+        if (retry != null) {
+            try {
+                server.send(retry);
+            } catch (IOException e) {
+                System.out.println(ERROR_SEND + e.getMessage());
             }
+
             return;
         }
 
@@ -76,7 +81,13 @@ public class Reply extends Protocol implements Runnable {
         byte command = request[LENGTH_UNIQUE_ID];
         switch(command) {
             case COMMAND_PUT:
-                replyPacket = commandPut();
+                try {
+                    replyPacket = commandPut();
+                } catch (OutOfMemoryError e) {
+                    replyPacket = createReplyPacket(ERROR_MEMORY);
+                } catch (Exception e) {
+                    replyPacket = createReplyPacket(ERROR_FAILURE);
+                }
                 break;
             case COMMAND_GET:
                 replyPacket = commandGet();
@@ -97,12 +108,15 @@ public class Reply extends Protocol implements Runnable {
                 break;
         }
 
+        if (Runtime.getRuntime().freeMemory() < MAX_MEMORY)
+            replyPacket = createReplyPacket(ERROR_MEMORY);
+
         try {
             server.send(replyPacket);
 
             //starts retry thread with all information needed to resend a reply
-            Thread retryThread = new Thread(new Retry(server, replyPacket, uniqueIdInt, queue));
-            queue.put(uniqueIdInt, retryThread);
+            Thread retryThread = new Thread(new Retry(uniqueIdInt, queue));
+            queue.put(uniqueIdInt, replyPacket);
             retryThread.start();
         } catch (IOException e) {
             System.out.println(ERROR_SEND + e.getMessage());
@@ -132,16 +146,21 @@ public class Reply extends Protocol implements Runnable {
      * Put key-value pair into store
      */
     private DatagramPacket commandPut()  {
-        byte[] key = new byte[LENGTH_KEY];
-        System.arraycopy(request, LENGTH_UNIQUE_ID + LENGTH_CODE, key, 0, LENGTH_KEY);
-        BigInteger keyInt = new BigInteger(key);
+        if (requestPacket.getLength() <= LENGTH_UNIQUE_ID + LENGTH_CODE + LENGTH_KEY + LENGTH_VALUE_LENGTH)
+            return createReplyPacket(ERROR_VALUE);
 
         int valueLength = ByteOrder.leb2int(request, LENGTH_UNIQUE_ID + LENGTH_CODE + LENGTH_KEY, LENGTH_VALUE_LENGTH);
 
-        if (valueLength < 1 || valueLength > 10000)
+        if (valueLength < 1 || valueLength > LENGTH_VALUE)
             return createReplyPacket(ERROR_LENGTH);
+        else if (requestPacket.getLength() < LENGTH_UNIQUE_ID + LENGTH_CODE + LENGTH_KEY + LENGTH_VALUE_LENGTH + valueLength)
+            return createReplyPacket(ERROR_VALUE);
         else if (store.size() == MAX_STORE)
             return createReplyPacket(ERROR_MEMORY);
+
+        byte[] key = new byte[LENGTH_KEY];
+        System.arraycopy(request, LENGTH_UNIQUE_ID + LENGTH_CODE, key, 0, LENGTH_KEY);
+        BigInteger keyInt = new BigInteger(key);
 
         byte[] value = new byte[valueLength];
         System.arraycopy(request, LENGTH_UNIQUE_ID + LENGTH_CODE + LENGTH_KEY + LENGTH_VALUE_LENGTH, value, 0, valueLength);
@@ -193,7 +212,7 @@ public class Reply extends Protocol implements Runnable {
      * Creates a reply packet with value from store
      *
      * @param value - value retreived from store
-     * @returnpacket to send back to client
+     * @return packet to send back to client
      */
     private DatagramPacket createReplyPacket(byte[] value) {
         byte[] reply = new byte[LENGTH_UNIQUE_ID + LENGTH_CODE + LENGTH_VALUE_LENGTH + value.length];
