@@ -10,6 +10,7 @@ public class Protocol {
     protected static final int LENGTH_VALUE = 10000;
     protected static final int LENGTH_VALUE_LENGTH = 2;
 
+    protected static final int MAX_MEMORY = 1024 * 1024;
     protected static final int MAX_STORE = 100000; //max number of key-value pairs in store
 
     protected static final int RETRIES = 3;

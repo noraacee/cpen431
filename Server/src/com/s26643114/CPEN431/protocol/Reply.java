@@ -142,6 +142,8 @@ public class Reply extends Protocol implements Runnable {
             return createReplyPacket(ERROR_LENGTH);
         else if (store.size() == MAX_STORE)
             return createReplyPacket(ERROR_MEMORY);
+        else if (Runtime.getRuntime().freeMemory() < MAX_MEMORY)
+            return createReplyPacket(ERROR_MEMORY);
 
         byte[] value = new byte[valueLength];
         System.arraycopy(request, LENGTH_UNIQUE_ID + LENGTH_CODE + LENGTH_KEY + LENGTH_VALUE_LENGTH, value, 0, valueLength);

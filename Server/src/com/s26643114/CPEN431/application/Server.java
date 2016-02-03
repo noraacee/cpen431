@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Server with key-value store service
  */
 public class Server {
-    private static final int PORT = 13114;
+    private static final int PORT = 12664;
 
     private static final String ERROR_NUMBER_FORMAT = "Port must be an integer";
     private static final String ERROR_SOCKET = "An error has occurred while creating the socket. Server returned with error: ";
@@ -36,10 +36,12 @@ public class Server {
                     port = Integer.parseInt(args[1]);
                     break;
                 default:
-                    ip = InetAddress.getByName(IP);
+                    ip = InetAddress.getLocalHost();
                     port = PORT;
                     break;
             }
+
+            System.out.println(ip.getHostAddress() + ":" + port);
         } catch (NumberFormatException e) {
             System.out.println(ERROR_NUMBER_FORMAT);
             return;
