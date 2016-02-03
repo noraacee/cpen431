@@ -1,5 +1,6 @@
 package com.s26643114.CPEN431.protocol;
 
+import java.net.DatagramPacket;
 /**
  * Helper class with constants
  */
@@ -10,10 +11,29 @@ public class Protocol {
     protected static final int LENGTH_VALUE = 10000;
     protected static final int LENGTH_VALUE_LENGTH = 2;
 
-    protected static final int MAX_MEMORY = 1024 * 1024;
+    protected static final int MAX_MEMORY = 20000; // a little larger than 10053 to account for other variables
     protected static final int MAX_STORE = 100000; //max number of key-value pairs in store
 
     protected static final int RETRIES = 3;
 
-    protected static final int TIMEOUT = 100; //Can be changed to longer according to client
+    protected static final int TIMEOUT = 5000; //Can be changed to longer according to client
+
+    //used to ensure that only 3 retries are made, not implemented at the moment
+    protected  class RetryPacket {
+        private int retries;
+        private DatagramPacket packet;
+
+        public RetryPacket(DatagramPacket packet) {
+            this.packet = packet;
+            retries = RETRIES;
+        }
+
+        public DatagramPacket getReply() {
+            return packet;
+        }
+
+        public int decrementAndGetRetries() {
+            return --retries;
+        }
+    }
 }

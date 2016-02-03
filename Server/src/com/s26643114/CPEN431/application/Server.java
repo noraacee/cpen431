@@ -19,8 +19,6 @@ public class Server {
     private static final String ERROR_SOCKET = "An error has occurred while creating the socket. Server returned with error: ";
     private static final String ERROR_UNKNOWN_HOST = "Cannot determine ip host";
 
-    private static final String IP = "ssh-linux4.ece.ubc.ca";
-
     public static void main(String[] args) {
         InetAddress ip;
         int port;
@@ -28,7 +26,7 @@ public class Server {
         try {
             switch (args.length) {
                 case 1:
-                    ip = InetAddress.getByName(IP);
+                    ip = InetAddress.getLocalHost();
                     port = Integer.parseInt(args[0]);
                     break;
                 case 2:
