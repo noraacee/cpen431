@@ -7,7 +7,7 @@ import java.io.OutputStream;
 /**
  * Various static routines for solving endian problems
  */
-public class ByteOrder {
+public class ByteUtil {
     /**
      * Returns the reverse of x
      */
@@ -117,6 +117,22 @@ public class ByteOrder {
     }
 
     /**
+     * Int to little-endian bytes: writes x to buf[offset..] for n number of bytes
+     */
+    public static void int2leb(int x, byte[] buf, int offset, int n) {
+        buf[offset] = (byte) (x & 0x000000FF);
+        if (n > 1) {
+            buf[offset + 1] = (byte) ((x >> 8) & 0x000000FF);
+            if (n > 2) {
+                buf[offset + 2] = (byte) ((x >> 16) & 0x000000FF);
+                if (n > 3) {
+                    buf[offset + 3] = (byte) ((x >> 24) & 0x000000FF);
+                }
+            }
+        }
+    }
+
+    /**
      * Int to little-endian bytes: writes x to given stream
      */
     public static void int2leb(int x, OutputStream os) throws IOException {
@@ -132,5 +148,22 @@ public class ByteOrder {
      */
     public static int ubyte2int(byte x) {
         return ((int) x) & 0x000000FF;
+    }
+
+    public static void longToByteArray(byte[] array, long l, int offset) {
+        for (int i = 7; i >= 0; i--) {
+            array[offset + i] = (byte) (l & 0xFF);
+            l >>= Long.BYTES;
+        }
+    }
+
+    public static long byteArrayToLong(byte[] array, int offset) {
+        long l = 0;
+        for (int i = 0; i < Long.BYTES; i++) {
+            l <<= Long.BYTES;
+            l |= (array[offset + i] & 0xFF);
+        }
+
+        return l;
     }
 }

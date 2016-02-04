@@ -14,7 +14,7 @@ public class StringUtils {
         int val;
 
         for (byte aByte : bytes) {
-            val = ByteOrder.ubyte2int(aByte);
+            val = ByteUtil.ubyte2int(aByte);
             str = Integer.toHexString(val);
             while (str.length() < 2)
                 str = "0" + str;
