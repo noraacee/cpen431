@@ -6,6 +6,14 @@ public class Node extends NodeBase {
     private String online;
     private String uptime;
 
+    public Node(NodeBase nodeBase, String online, String login, String disk, String uptime) {
+        super(nodeBase);
+        this.online = online;
+        this.login = login;
+        this.disk = disk;
+        this.uptime = uptime;
+    }
+
     public Node(String hostName, String nodeId,  String online, String login, String disk, String uptime) {
         super(hostName, nodeId);
         this.online = online;
