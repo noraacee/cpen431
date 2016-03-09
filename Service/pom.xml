@@ -28,7 +28,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.s26643114.CPEN431.application.Service</mainClass>
+                            <mainClass>com.s26643114.CPEN431.system.Service</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

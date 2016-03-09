@@ -1,4 +1,4 @@
-package com.s26643114.CPEN431.application;
+package com.s26643114.CPEN431.system;
 
 import com.s26643114.CPEN431.protocol.Protocol;
 import com.s26643114.CPEN431.protocol.Reply;

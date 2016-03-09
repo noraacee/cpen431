@@ -1,4 +1,4 @@
-package com.s26643114.CPEN431.application;
+package com.s26643114.CPEN431.system;
 
 import com.jcraft.jsch.JSchException;
 import com.s26643114.CPEN431.model.Node;
@@ -6,7 +6,6 @@ import com.s26643114.CPEN431.protocol.Report;
 import com.s26643114.CPEN431.util.SSHManager;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 
 public class Monitor {
     private static final String COMMAND_DISK = "du -s";

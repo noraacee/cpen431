@@ -28,7 +28,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.s26643114.CPEN431.application.Monitor</mainClass>
+                            <mainClass>com.s26643114.CPEN431.system.Monitor</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

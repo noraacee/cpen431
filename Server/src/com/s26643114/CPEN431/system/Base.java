@@ -1,22 +1,17 @@
-package com.s26643114.CPEN431.application;
+package com.s26643114.CPEN431.system;
 
-import com.s26643114.CPEN431.protocol.Request;
-
-import java.math.BigInteger;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Server with key-value store service
+ * Base with key-value store service
  */
-public class Server {
+public class Base {
     private static final int PORT = 12664;
 
     private static final String ERROR_NUMBER_FORMAT = "Port must be an integer";
-    private static final String ERROR_SOCKET = "An error has occurred while creating the socket. Server returned with error: ";
+    private static final String ERROR_SOCKET = "An error has occurred while creating the socket. System returned with error: ";
     private static final String ERROR_UNKNOWN_HOST = "Cannot determine ip host";
 
     public static void main(String[] args) {
@@ -48,17 +43,11 @@ public class Server {
             return;
         }
 
-        DatagramSocket server;
         try {
-            server = new DatagramSocket(port, ip);
+            Server server = new Server(ip, port);
+            server.accept();
         } catch (SocketException e) {
             System.out.println(ERROR_SOCKET + e.getMessage());
-            return;
         }
-
-        ConcurrentHashMap<BigInteger, byte[]> store = new ConcurrentHashMap<>();
-
-        Request request = new Request(server, store);
-        request.receive();
     }
 }

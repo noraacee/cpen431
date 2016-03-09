@@ -1,10 +1,7 @@
 package com.s26643114.CPEN431.protocol;
 
-import com.s26643114.CPEN431.util.ByteUtil;
+import com.s26643114.CPEN431.system.Database;
 
-import java.math.BigInteger;
-import java.util.LinkedList;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -12,13 +9,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class Retry extends Protocol implements Runnable {
     private AtomicBoolean shutdown;
-    private ConcurrentHashMap<BigInteger, byte[]> cache;
-    private final LinkedList<BigInteger> queue;
+    private Database database;
 
-    public Retry(AtomicBoolean shutdown, ConcurrentHashMap<BigInteger, byte[]> cache, LinkedList<BigInteger> queue) {
+    public Retry(AtomicBoolean shutdown, Database database) {
         this.shutdown = shutdown;
-        this.cache = cache;
-        this.queue = queue;
+        this.database = database;
     }
 
     /**
@@ -26,35 +21,21 @@ public class Retry extends Protocol implements Runnable {
      */
     @Override
     public void run() {
-        BigInteger key;
-        byte[] retry;
         long timeout;
-        long instant;
 
         while(!shutdown.get()) {
-            if (queue.isEmpty()) {
-                synchronized (queue) {
-                    try {
-                        queue.wait();
-                    } catch (InterruptedException ignored) {}
-                }
-            } else {
-                key = queue.getFirst();
-                retry = cache.get(key);
-                timeout = ByteUtil.byteArrayToLong(retry, retry.length - Long.BYTES);
-                instant = System.currentTimeMillis();
+            timeout = database.getTimeout();
 
-                if (timeout > instant) {
-                    synchronized (this) {
-                        try {
-                            wait(timeout - instant);
-                        } catch (InterruptedException ignored) {}
+            if (timeout > 0) {
+                synchronized (this) {
+                    try {
+                        wait(timeout);
+                    } catch (InterruptedException ignored) {
                     }
                 }
-
-                cache.remove(key);
-                queue.removeFirst();
             }
+
+            database.removeFirst();
         }
     }
 }
