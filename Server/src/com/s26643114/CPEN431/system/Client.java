@@ -2,19 +2,19 @@ package com.s26643114.CPEN431.system;
 
 import com.s26643114.CPEN431.protocol.Protocol;
 import com.s26643114.CPEN431.protocol.Request;
+import com.s26643114.CPEN431.util.Logging;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 
 /**
  * Handles interaction with a client
  */
 public class Client extends Protocol implements Runnable {
-    private DatagramSocket server;
+    private Server server;
     private Request request;
 
-    public Client(DatagramSocket server, Request request) {
+    public Client(Server server, Request request) {
         this.server = server;
         this.request = request;
     }
@@ -23,16 +23,24 @@ public class Client extends Protocol implements Runnable {
     public void run() {
         try {
             DatagramPacket reply = request.parse();
+            if (reply == null)
+                return;
+
             try {
                 server.send(reply);
                 request.cache();
             } catch (IOException e) {
-                System.out.println(ERROR_MESSAGE_SEND + e.getMessage());
+                if (Logging.VERBOSE_CLIENT)
+                    Logging.log(e);
             }
         } catch (OutOfMemoryError e) {
             reject(ERROR_MEMORY);
+            if (Logging.VERBOSE_CLIENT)
+                Logging.log(e);
         } catch (Exception e) {
             reject(ERROR_FAILURE);
+            if (Logging.VERBOSE_CLIENT)
+                Logging.log(e);
         }
     }
 
@@ -40,7 +48,8 @@ public class Client extends Protocol implements Runnable {
         try {
             server.send(request.reject(errorCode));
         } catch (IOException e) {
-            System.out.println(ERROR_MESSAGE_SEND + e.getMessage());
+            if (Logging.VERBOSE_CLIENT)
+                Logging.log(e);
         }
     }
 }

@@ -1,21 +1,28 @@
 package com.s26643114.CPEN431.protocol;
 
+import com.s26643114.CPEN431.distribution.Distribution;
 import com.s26643114.CPEN431.system.Database;
 import com.s26643114.CPEN431.util.ByteUtil;
+import com.s26643114.CPEN431.util.Logging;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.net.DatagramPacket;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Encapsulates a request and its reply
  */
 public class Request extends Protocol {
+    private byte[] key;
     private byte[] request;
     private byte[] reply;
     private byte[] uniqueId;
 
     private AtomicBoolean shutdown;
+    private BigInteger keyInt;
     private BigInteger uniqueIdInt;
     private Database database;
     private DatagramPacket packet;
@@ -26,7 +33,9 @@ public class Request extends Protocol {
         this.packet = packet;
 
         request = packet.getData();
+        reply = null;
 
+        parseKey();
         parseUniqueId();
     }
 
@@ -34,61 +43,146 @@ public class Request extends Protocol {
      * Cache the request in the database
      */
     public void cache() {
+        if (reply == null)
+            return;
+
         ByteUtil.longToByteArray(reply, System.currentTimeMillis() + TIMEOUT, reply.length - Long.BYTES);
         database.cache(uniqueIdInt, reply);
+    }
+
+    public DatagramPacket convertToInternal(InetAddress ip, int port) {
+        if (request[LENGTH_UNIQUE_ID] < MASK_COMMAND)
+            request[LENGTH_UNIQUE_ID] += MASK_COMMAND;
+
+        System.arraycopy(packet.getAddress().getAddress(), 0, request, packet.getLength(), LENGTH_IP);
+
+        byte[] portByte = new byte[LENGTH_PORT];
+        ByteUtil.int2leb(packet.getPort(), portByte, 0, LENGTH_PORT);
+        System.arraycopy(portByte, 0, request, packet.getLength() + LENGTH_IP, LENGTH_PORT);
+
+        packet.setLength(packet.getLength() + LENGTH_IP + LENGTH_PORT);
+        packet.setAddress(ip);
+        packet.setPort(port);
+
+        if (Logging.VERBOSE_REQUEST)
+            Logging.log("packet converted to command " + request[LENGTH_UNIQUE_ID] + ", ip " + ip.getHostAddress()
+                    + ", port " + port + " and packet length " + packet.getLength());
+
+        return packet;
+    }
+
+    public byte[] getKey() {
+        return key;
     }
 
     /**
      * Parses and completes the request
      */
-    public DatagramPacket parse() {
+    public DatagramPacket parse() throws IOException {
+        if (uniqueIdInt == null) {
+            Reply.setReply(packet, ERROR_PACKET);
+            return packet;
+        }
+
         //Checks if request is in cache
         byte[] retry = database.check(uniqueIdInt);
         if (retry != null) {
+            if (Logging.VERBOSE_REQUEST)
+                Logging.log("reply found in cache with unique id: ");
+
             Reply.setReply(packet, retry);
             return packet;
         }
 
         byte command = request[LENGTH_UNIQUE_ID];
-        switch (command) {
-            case COMMAND_PUT:
-                reply = put();
-                break;
-            case COMMAND_GET:
-                reply = get();
-                break;
-            case COMMAND_REMOVE:
-                reply = remove();
-                break;
-            case COMMAND_SHUTDOWN:
-                shutdown.set(true);
-                reply = Reply.createReply(packet, uniqueId, ERROR_NONE);
-                break;
-            case COMMAND_REMOVE_ALL:
-                database.clear();
-                reply = Reply.createReply(packet, uniqueId, ERROR_NONE);
-                break;
-            default:
-                reply = Reply.createReply(packet, uniqueId, ERROR_COMMAND);
-                break;
-        }
+        if (command <= COMMAND_REMOVE && !Distribution.checkSelf(key)) {
+            Distribution.route(this);
+            return null;
+        } else {
+            if (command > MASK_COMMAND) {
+                configureRouting();
+                command -= MASK_COMMAND;
+            }
 
-        return packet;
+            switch (command) {
+                case COMMAND_PUT:
+                    reply = put();
+                    break;
+                case COMMAND_GET:
+                    reply = get();
+                    break;
+                case COMMAND_REMOVE:
+                    reply = remove();
+                    break;
+                case COMMAND_SHUTDOWN:
+                    if (Logging.VERBOSE_REQUEST)
+                        Logging.log("shutdown requested");
+
+                    shutdown.set(true);
+                    reply = Reply.createReply(packet, uniqueId, ERROR_NONE);
+                    break;
+                case COMMAND_REMOVE_ALL:
+                    if (Logging.VERBOSE_REQUEST)
+                        Logging.log("remove all request");
+
+                    database.clear();
+                    reply = Reply.createReply(packet, uniqueId, ERROR_NONE);
+                    break;
+                default:
+                    if (Logging.VERBOSE_REQUEST)
+                        Logging.log("command not found: " + command);
+
+                    reply = Reply.createReply(packet, uniqueId, ERROR_COMMAND);
+                    break;
+            }
+
+            return packet;
+        }
     }
 
     /**
      * Rejects the request with the error code
      */
-    public DatagramPacket reject(byte errorCode) {
+    public DatagramPacket reject(byte errorCode) throws UnknownHostException {
+        if (request[LENGTH_UNIQUE_ID] > MASK_COMMAND)
+            configureRouting();
+
+        if (Logging.VERBOSE_REQUEST)
+            Logging.log("rejecting package with code " + errorCode);
+
         Reply.setReply(packet, errorCode);
         return packet;
+    }
+
+    private void configureRouting() throws UnknownHostException {
+        byte[] ip = new byte[LENGTH_IP];
+        System.arraycopy(request, packet.getLength() - LENGTH_PORT - LENGTH_IP, ip, 0, LENGTH_IP);
+
+        int port = ByteUtil.leb2int(request, packet.getLength() - LENGTH_PORT, LENGTH_PORT);
+
+        packet.setAddress(InetAddress.getByAddress(ip));
+        packet.setPort(port);
+
+        if (Logging.VERBOSE_REQUEST)
+            Logging.log("configured routing to [" + packet.getAddress().getHostAddress() + ":" + port + "]");
     }
 
     /**
      * Get value from store with given key
      */
     private byte[] get() {
-        byte[] value = database.get(parseKey());
+        if (keyInt == null)
+            return Reply.createReply(packet, uniqueId, ERROR_KEY);
+
+        byte[] value = database.get(keyInt);
+
+        if (Logging.VERBOSE_REQUEST) {
+            if (value == null)
+                Logging.log("get key not fount: " + keyInt);
+            else
+                Logging.log("get [" + keyInt + ": " + value.length + "]");
+        }
+
         if (value == null)
             return Reply.createReply(packet, uniqueId, ERROR_KEY);
         return Reply.createReply(packet, uniqueId, value);
@@ -97,25 +191,52 @@ public class Request extends Protocol {
     /**
      * Parses the key to use in the command
      */
-    private BigInteger parseKey() {
-        byte[] key = new byte[LENGTH_KEY];
+    private void parseKey() {
+        if (packet.getLength() < LENGTH_UNIQUE_ID + LENGTH_CODE + LENGTH_KEY) {
+            if (Logging.VERBOSE_REQUEST)
+                System.out.println("no key to parse");
+
+            key = null;
+            keyInt = null;
+            return;
+        }
+
+        key = new byte[LENGTH_KEY];
         System.arraycopy(request, LENGTH_UNIQUE_ID + LENGTH_CODE, key, 0, LENGTH_KEY);
-        return new BigInteger(key);
+        keyInt = new BigInteger(key);
+
+        if (Logging.VERBOSE_REQUEST)
+            Logging.log("key parsed: " + keyInt);
     }
 
     /**
      * Parses the unique id of the request
      */
     private void parseUniqueId() {
+        if (packet.getLength() < LENGTH_UNIQUE_ID + LENGTH_CODE) {
+            if (Logging.VERBOSE_REQUEST)
+                System.out.println("no unique id to parse");
+
+            uniqueId = null;
+            uniqueIdInt = null;
+            return;
+        }
+
         uniqueId = new byte[LENGTH_UNIQUE_ID];
         System.arraycopy(request, 0, uniqueId, 0, LENGTH_UNIQUE_ID);
         uniqueIdInt = new BigInteger(uniqueId);
+
+        if (Logging.VERBOSE_REQUEST)
+            Logging.log("unique id parsed: " + uniqueIdInt);
     }
 
     /**
      * Put key-value pair into store
      */
     private byte[] put()  {
+        if (keyInt == null)
+            return Reply.createReply(packet, uniqueId, ERROR_KEY);
+
         // Checks if packet contains a value to put
         if (packet.getLength() <= LENGTH_UNIQUE_ID + LENGTH_CODE + LENGTH_KEY + LENGTH_VALUE_LENGTH)
             return Reply.createReply(packet, uniqueId, ERROR_VALUE);
@@ -134,11 +255,14 @@ public class Request extends Protocol {
         else if (database.size() >= MAX_STORE)
             return Reply.createReply(packet, uniqueId, ERROR_MEMORY);
 
-        BigInteger key = parseKey();
         byte[] value = new byte[valueLength];
         System.arraycopy(request, LENGTH_UNIQUE_ID + LENGTH_CODE + LENGTH_KEY + LENGTH_VALUE_LENGTH, value, 0, valueLength);
 
-        database.put(key, value);
+        database.put(keyInt, value);
+
+        if (Logging.VERBOSE_REQUEST)
+            Logging.log("put [" + keyInt + ":" + valueLength + "]");
+
         return Reply.createReply(packet, uniqueId, ERROR_NONE);
     }
 
@@ -146,9 +270,20 @@ public class Request extends Protocol {
      * Remove key-value pair from store
      */
     private byte[] remove() {
-        if (database.remove(parseKey()) == null)
+        if (keyInt == null)
             return Reply.createReply(packet, uniqueId, ERROR_KEY);
-        else
-            return Reply.createReply(packet, uniqueId, ERROR_NONE);
+
+        byte[] removed = database.remove(keyInt);
+
+        if (Logging.VERBOSE_REQUEST) {
+            if (removed == null)
+                Logging.log("remove key not found: " + keyInt);
+            else
+                Logging.log("remove [" + keyInt + ":" + removed.length + "]");
+        }
+
+        if (removed == null)
+            return Reply.createReply(packet, uniqueId, ERROR_KEY);
+        return Reply.createReply(packet, uniqueId, ERROR_NONE);
     }
 }

@@ -4,6 +4,7 @@ import com.s26643114.CPEN431.protocol.Protocol;
 import com.s26643114.CPEN431.protocol.Reply;
 import com.s26643114.CPEN431.protocol.Request;
 import com.s26643114.CPEN431.protocol.Retry;
+import com.s26643114.CPEN431.util.Logging;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -42,21 +43,21 @@ public class Server extends Protocol {
         while(!shutdown.get()) {
             DatagramPacket packet = null;
             try {
-                byte[] data = new byte[LENGTH_TOTAL];
-                packet = new DatagramPacket(data, LENGTH_TOTAL);
+                packet = new DatagramPacket(new byte[LENGTH_TOTAL], LENGTH_TOTAL);
 
                 server.receive(packet);
 
                 Request request = new Request(shutdown, database, packet);
 
-                executor.execute(new Client(server, request));
+                executor.execute(new Client(this, request));
             } catch (OutOfMemoryError e) {
                 if (packet != null) {
                     Reply.setReply(packet, ERROR_MEMORY);
                     try {
                         server.send(packet);
                     } catch (IOException ioe) {
-                        System.out.println(ERROR_MESSAGE_SEND + e.getMessage());
+                        if (Logging.VERBOSE_SERVER)
+                            Logging.log(ioe);
                     }
                 }
             } catch (Exception e) {
@@ -65,15 +66,28 @@ public class Server extends Protocol {
                     try {
                         server.send(packet);
                     } catch (IOException ioe) {
-                        System.out.println(ERROR_MESSAGE_SEND + e.getMessage());
+                        if (Logging.VERBOSE_SERVER)
+                            Logging.log(ioe);
                     }
                 }
 
-                System.out.println(ERROR_MESSAGE_RECEIVE + e.getMessage());
+                if (Logging.VERBOSE_SERVER)
+                    Logging.log(e);
             }
         }
 
         executor.shutdown();
+    }
+
+    public String getAddress() {
+        return server.getLocalAddress().getHostAddress() + ":" + Integer.toString(server.getLocalPort());
+    }
+
+    /**
+     * Sends a packet using server socket
+     */
+    public void send(DatagramPacket packet) throws IOException {
+        server.send(packet);
     }
 
     /**

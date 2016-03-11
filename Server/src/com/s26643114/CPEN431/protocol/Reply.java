@@ -6,15 +6,13 @@ import java.net.DatagramPacket;
 
 public class Reply extends Protocol {
     public static byte[] createReply(DatagramPacket packet, byte[] uniqueId, byte errorCode) {
-        int length = LENGTH_UNIQUE_ID + LENGTH_CODE;
-        byte[] reply = new byte[length + Long.BYTES];
-
+        byte[] reply = new byte[LENGTH_UNIQUE_ID + LENGTH_CODE + Long.BYTES];
         System.arraycopy(uniqueId, 0, reply, 0, LENGTH_UNIQUE_ID);
 
         reply[LENGTH_UNIQUE_ID] = errorCode;
 
         packet.setData(reply);
-        packet.setLength(length);
+        packet.setLength(reply.length - Long.BYTES);
 
         return reply;
     }
