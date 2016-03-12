@@ -1,6 +1,6 @@
 package com.s26643114.CPEN431.distribution;
 
-import com.s26643114.CPEN431.util.Logging;
+import com.s26643114.CPEN431.util.Logger;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -14,6 +14,8 @@ import java.util.TreeMap;
 
 public class Circle {
     private static final String ALGORITHM_HASH = "MD5";
+    private static final String DELIMITER_NODE = ":";
+    private static final String IGNORED_NODE = "#";
 
     private SortedMap<BigInteger, Node> nodes;
 
@@ -26,8 +28,8 @@ public class Circle {
     public Node getNode(BigInteger key) {
         Node node = nodes.get(key);
 
-        if (Logging.VERBOSE_CIRCLE)
-            Logging.log("retrieved node [" + node.getIp().getHostAddress() + ":" + node.getPort() + "]");
+        if (Logger.VERBOSE_CIRCLE)
+            Logger.log("retrieved node [" + node.getIp().getHostAddress() + ":" + node.getPort() + "]");
 
         return node;
     }
@@ -72,13 +74,16 @@ public class Circle {
         String line;
         String[] parts;
         while ((line = bufferedReader.readLine()) != null) {
-            parts = line.split(":");
+            if (line.contains(IGNORED_NODE))
+                continue;
+
+            parts = line.split(DELIMITER_NODE);
             node = new Node(InetAddress.getByName(parts[0]), Integer.parseInt(parts[1]));
 
             nodes.put(hash(line.getBytes()), node);
 
-            if (Logging.VERBOSE_CIRCLE)
-                Logging.log("added node [" + line + "]");
+            if (Logger.VERBOSE_CIRCLE)
+                Logger.log("added node [" + line + "]");
         }
 
         bufferedReader.close();

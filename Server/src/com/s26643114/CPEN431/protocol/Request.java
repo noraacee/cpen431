@@ -3,7 +3,7 @@ package com.s26643114.CPEN431.protocol;
 import com.s26643114.CPEN431.distribution.Distribution;
 import com.s26643114.CPEN431.system.Database;
 import com.s26643114.CPEN431.util.ByteUtil;
-import com.s26643114.CPEN431.util.Logging;
+import com.s26643114.CPEN431.util.Logger;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -64,8 +64,8 @@ public class Request extends Protocol {
         packet.setAddress(ip);
         packet.setPort(port);
 
-        if (Logging.VERBOSE_REQUEST)
-            Logging.log("packet converted to command " + request[LENGTH_UNIQUE_ID] + ", ip " + ip.getHostAddress()
+        if (Logger.VERBOSE_REQUEST)
+            Logger.log("packet converted to command " + request[LENGTH_UNIQUE_ID] + ", ip " + ip.getHostAddress()
                     + ", port " + port + " and packet length " + packet.getLength());
 
         return packet;
@@ -87,8 +87,8 @@ public class Request extends Protocol {
         //Checks if request is in cache
         byte[] retry = database.check(uniqueIdInt);
         if (retry != null) {
-            if (Logging.VERBOSE_REQUEST)
-                Logging.log("reply found in cache with unique id: ");
+            if (Logger.VERBOSE_REQUEST)
+                Logger.log("reply found in cache with unique id: ");
 
             Reply.setReply(packet, retry);
             return packet;
@@ -115,22 +115,22 @@ public class Request extends Protocol {
                     reply = remove();
                     break;
                 case COMMAND_SHUTDOWN:
-                    if (Logging.VERBOSE_REQUEST)
-                        Logging.log("shutdown requested");
+                    if (Logger.VERBOSE_REQUEST)
+                        Logger.log("shutdown requested");
 
                     shutdown.set(true);
                     reply = Reply.createReply(packet, uniqueId, ERROR_NONE);
                     break;
                 case COMMAND_REMOVE_ALL:
-                    if (Logging.VERBOSE_REQUEST)
-                        Logging.log("remove all request");
+                    if (Logger.VERBOSE_REQUEST)
+                        Logger.log("remove all request");
 
                     database.clear();
                     reply = Reply.createReply(packet, uniqueId, ERROR_NONE);
                     break;
                 default:
-                    if (Logging.VERBOSE_REQUEST)
-                        Logging.log("command not found: " + command);
+                    if (Logger.VERBOSE_REQUEST)
+                        Logger.log("command not found: " + command);
 
                     reply = Reply.createReply(packet, uniqueId, ERROR_COMMAND);
                     break;
@@ -147,8 +147,8 @@ public class Request extends Protocol {
         if (request[LENGTH_UNIQUE_ID] > MASK_COMMAND)
             configureRouting();
 
-        if (Logging.VERBOSE_REQUEST)
-            Logging.log("rejecting package with code " + errorCode);
+        if (Logger.VERBOSE_REQUEST)
+            Logger.log("rejecting package with code " + errorCode);
 
         Reply.setReply(packet, errorCode);
         return packet;
@@ -163,8 +163,8 @@ public class Request extends Protocol {
         packet.setAddress(InetAddress.getByAddress(ip));
         packet.setPort(port);
 
-        if (Logging.VERBOSE_REQUEST)
-            Logging.log("configured routing to [" + packet.getAddress().getHostAddress() + ":" + port + "]");
+        if (Logger.VERBOSE_REQUEST)
+            Logger.log("configured routing to [" + packet.getAddress().getHostAddress() + ":" + port + "]");
     }
 
     /**
@@ -176,11 +176,11 @@ public class Request extends Protocol {
 
         byte[] value = database.get(keyInt);
 
-        if (Logging.VERBOSE_REQUEST) {
+        if (Logger.VERBOSE_REQUEST) {
             if (value == null)
-                Logging.log("get key not fount: " + keyInt);
+                Logger.log("get key not fount: " + keyInt);
             else
-                Logging.log("get [" + keyInt + ": " + value.length + "]");
+                Logger.log("get [" + keyInt + ": " + value.length + "]");
         }
 
         if (value == null)
@@ -193,7 +193,7 @@ public class Request extends Protocol {
      */
     private void parseKey() {
         if (packet.getLength() < LENGTH_UNIQUE_ID + LENGTH_CODE + LENGTH_KEY) {
-            if (Logging.VERBOSE_REQUEST)
+            if (Logger.VERBOSE_REQUEST)
                 System.out.println("no key to parse");
 
             key = null;
@@ -205,8 +205,8 @@ public class Request extends Protocol {
         System.arraycopy(request, LENGTH_UNIQUE_ID + LENGTH_CODE, key, 0, LENGTH_KEY);
         keyInt = new BigInteger(key);
 
-        if (Logging.VERBOSE_REQUEST)
-            Logging.log("key parsed: " + keyInt);
+        if (Logger.VERBOSE_REQUEST)
+            Logger.log("key parsed: " + keyInt);
     }
 
     /**
@@ -214,7 +214,7 @@ public class Request extends Protocol {
      */
     private void parseUniqueId() {
         if (packet.getLength() < LENGTH_UNIQUE_ID + LENGTH_CODE) {
-            if (Logging.VERBOSE_REQUEST)
+            if (Logger.VERBOSE_REQUEST)
                 System.out.println("no unique id to parse");
 
             uniqueId = null;
@@ -226,8 +226,8 @@ public class Request extends Protocol {
         System.arraycopy(request, 0, uniqueId, 0, LENGTH_UNIQUE_ID);
         uniqueIdInt = new BigInteger(uniqueId);
 
-        if (Logging.VERBOSE_REQUEST)
-            Logging.log("unique id parsed: " + uniqueIdInt);
+        if (Logger.VERBOSE_REQUEST)
+            Logger.log("unique id parsed: " + uniqueIdInt);
     }
 
     /**
@@ -260,8 +260,8 @@ public class Request extends Protocol {
 
         database.put(keyInt, value);
 
-        if (Logging.VERBOSE_REQUEST)
-            Logging.log("put [" + keyInt + ":" + valueLength + "]");
+        if (Logger.VERBOSE_REQUEST)
+            Logger.log("put [" + keyInt + ":" + valueLength + "]");
 
         return Reply.createReply(packet, uniqueId, ERROR_NONE);
     }
@@ -275,11 +275,11 @@ public class Request extends Protocol {
 
         byte[] removed = database.remove(keyInt);
 
-        if (Logging.VERBOSE_REQUEST) {
+        if (Logger.VERBOSE_REQUEST) {
             if (removed == null)
-                Logging.log("remove key not found: " + keyInt);
+                Logger.log("remove key not found: " + keyInt);
             else
-                Logging.log("remove [" + keyInt + ":" + removed.length + "]");
+                Logger.log("remove [" + keyInt + ":" + removed.length + "]");
         }
 
         if (removed == null)

@@ -2,7 +2,7 @@ package com.s26643114.CPEN431.system;
 
 import com.s26643114.CPEN431.protocol.Protocol;
 import com.s26643114.CPEN431.protocol.Request;
-import com.s26643114.CPEN431.util.Logging;
+import com.s26643114.CPEN431.util.Logger;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -30,17 +30,17 @@ public class Client extends Protocol implements Runnable {
                 server.send(reply);
                 request.cache();
             } catch (IOException e) {
-                if (Logging.VERBOSE_CLIENT)
-                    Logging.log(e);
+                if (Logger.VERBOSE_CLIENT)
+                    Logger.log(e);
             }
         } catch (OutOfMemoryError e) {
             reject(ERROR_MEMORY);
-            if (Logging.VERBOSE_CLIENT)
-                Logging.log(e);
+            if (Logger.VERBOSE_CLIENT)
+                Logger.log(e);
         } catch (Exception e) {
             reject(ERROR_FAILURE);
-            if (Logging.VERBOSE_CLIENT)
-                Logging.log(e);
+            if (Logger.VERBOSE_CLIENT)
+                Logger.log(e);
         }
     }
 
@@ -48,8 +48,8 @@ public class Client extends Protocol implements Runnable {
         try {
             server.send(request.reject(errorCode));
         } catch (IOException e) {
-            if (Logging.VERBOSE_CLIENT)
-                Logging.log(e);
+            if (Logger.VERBOSE_CLIENT)
+                Logger.log(e);
         }
     }
 }

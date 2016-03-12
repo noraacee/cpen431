@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 
+import os
 import paramiko
+from datetime import datetime
 from scp import SCPClient
 
+datetime_format = '%Y-%m-%d %H:%M:%S'
 
 username = 'ubc_cpen431_8'
 password = 'CPEN431'
 key = '../Key/id_rsa'
 
-directory = 'deploy/'
-server = 'Server.jar'
+directory = 'log/'
+log = 'server.log'
 nodes_list = 'nodes.list'
-
-command_start = "nohup java -jar -Xmx64m {0} &".format(server)
-command_kill = "pgrep -f {0} | awk '{print \"kill -9 \" $1}' | sh".format(server)
 
 
 def connect_ssh_client(hostname):
@@ -33,16 +33,28 @@ for line in nodes_file:
         nodes.append(line.split(":")[0])
 nodes_file.close()
 
+node_log = open(directory + log, 'w')
+node_log.write(datetime.now().strftime(datetime_format) + '\n\n')
+
 for node in nodes:
-    print "starting node: " + node
+    print "retrieving node log: " + node
     connection = connect_ssh_client(node)
     if connection is not None:
         with SCPClient(connection.get_transport()) as scp:
-            scp.put(directory + server, server)
-            scp.put(nodes_list, nodes_list)
+            scp.get(log, directory + node + '_' + log)
             scp.close()
-        connection.exec_command(command_kill)
-        connection.exec_command(command_start)
         connection.close()
+
+        node_log_file = open(directory + node + '_' + log, 'r')
+        for line in node_log_file:
+            node_log.write(line)
+        node_log_file.close()
+
+        os.remove(directory + node + "_" + log)
+        node_log.write('\n')
+node_log.close()
+
+os.chdir(directory)
+os.startfile(log)
 
 print "done"

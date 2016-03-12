@@ -3,7 +3,7 @@ package com.s26643114.CPEN431.distribution;
 import com.s26643114.CPEN431.protocol.Protocol;
 import com.s26643114.CPEN431.protocol.Request;
 import com.s26643114.CPEN431.system.Server;
-import com.s26643114.CPEN431.util.Logging;
+import com.s26643114.CPEN431.util.Logger;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -22,8 +22,8 @@ public class Distribution extends Protocol {
     }
 
     public static void route(Request request) {
-        if (Logging.VERBOSE_DISTRIBUTION)
-            Logging.log("routing requested");
+        if (Logger.VERBOSE_DISTRIBUTION)
+            Logger.log("routing requested");
 
         BigInteger key = nodes.getNodeKey(request.getKey());
         Node node = nodes.getNode(key);

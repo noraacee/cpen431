@@ -4,7 +4,7 @@ import com.s26643114.CPEN431.protocol.Protocol;
 import com.s26643114.CPEN431.protocol.Reply;
 import com.s26643114.CPEN431.protocol.Request;
 import com.s26643114.CPEN431.protocol.Retry;
-import com.s26643114.CPEN431.util.Logging;
+import com.s26643114.CPEN431.util.Logger;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -56,8 +56,8 @@ public class Server extends Protocol {
                     try {
                         server.send(packet);
                     } catch (IOException ioe) {
-                        if (Logging.VERBOSE_SERVER)
-                            Logging.log(ioe);
+                        if (Logger.VERBOSE_SERVER)
+                            Logger.log(ioe);
                     }
                 }
             } catch (Exception e) {
@@ -66,13 +66,13 @@ public class Server extends Protocol {
                     try {
                         server.send(packet);
                     } catch (IOException ioe) {
-                        if (Logging.VERBOSE_SERVER)
-                            Logging.log(ioe);
+                        if (Logger.VERBOSE_SERVER)
+                            Logger.log(ioe);
                     }
                 }
 
-                if (Logging.VERBOSE_SERVER)
-                    Logging.log(e);
+                if (Logger.VERBOSE_SERVER)
+                    Logger.log(e);
             }
         }
 
