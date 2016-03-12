@@ -16,7 +16,7 @@ public class Base {
     //private static final String ERROR_SOCKET = "An error has occurred while creating the socket. System returned with error: ";
     //private static final String ERROR_UNKNOWN_HOST = "Cannot determine ip host";
 
-    private static final String FILE_NAME_NODES = "servers.txt";
+    private static final String FILE_NAME_NODES = "nodes.list";
 
     public static void main(String[] args) {
         try {
