@@ -1,27 +1,47 @@
 #!/usr/bin/env python
 
-import sys
+import os
+from subprocess import call
 
-directory = 'test/'
+directory = 'test'
 tests_list = 'tests.list'
-nodes_list = 'nodes.list'
+nodes_list = '../nodes.list'
+output = 'log.txt'
+secret = '9833401'
+
+command_test = "java -jar %s %s "
 
 
-test_number = -1
-if len(sys.argv) > 1:
-    test_number = int(sys.argv[1])
+os.chdir(directory)
 
-if test_number == -1:
-    tests = []
-    tests_file = open(directory + tests_list, 'r')
+tests = []
+with open(tests_list, 'r') as tests_file:
     for line in tests_file:
         arguments = line.split(":")
-        tests.append(arguments[1].rstrip('\n'))
+        tests.append([arguments[1], arguments[2], arguments[3].rstrip('\n')])
 
-    print "Available tests:"
-    for i, test in enumerate(tests):
-        print "[{0}] {1}".format(i, test)
+print "Available tests:"
+for i, test in enumerate(tests):
+    print "[%d] %s" % (i, test[0])
 
-    test_number = int(raw_input("\nPick a test: "))
+test_number = int(raw_input("\nPick a test: "))
 
+if tests[test_number][2] == 'y':
+    submit = raw_input("Submit results? (y/n): ")
+else:
+    submit = 'n'
 
+with open(output, 'w') as log:
+    print "\nstarting test: " + tests[test_number][0]
+
+    if submit == 'y':
+        command_test += secret
+
+    if tests[test_number][1] == 'y':
+        call(command_test % (tests[test_number][0], nodes_list), stdout=log, stderr=log)
+    else:
+        call(command_test % (tests[test_number][0], nodes_list))
+
+os.startfile(output)
+
+print "\ndone"

@@ -1,5 +1,4 @@
-0:a5.jar
-1:a2.jar
-2:a3.jar
-3:a3_redo.jar
-4:a5.jar
+0:a2.jar:y:n
+1:a3.jar:y:n
+2:a3_redo.jar:n:y
+3:a5.jar:n:y

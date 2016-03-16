@@ -11,6 +11,8 @@ import java.net.DatagramPacket;
  * Handles interaction with a client
  */
 public class Client extends Protocol implements Runnable {
+    private static final String TAG = "client";
+
     private Server server;
     private Request request;
 
@@ -22,25 +24,28 @@ public class Client extends Protocol implements Runnable {
     @Override
     public void run() {
         try {
+            long start = System.nanoTime();
             DatagramPacket reply = request.parse();
+            long end = System.nanoTime();
+            Logger.log(TAG, "reply took: " + (end - start) / 1000);
+
             if (reply == null)
                 return;
 
             try {
                 server.send(reply);
-                request.cache();
             } catch (IOException e) {
-                if (Logger.VERBOSE_CLIENT)
-                    Logger.log(e);
+                //if (Logger.VERBOSE_CLIENT)
+                    //Logger.log(TAG, e);
             }
         } catch (OutOfMemoryError e) {
             reject(ERROR_MEMORY);
-            if (Logger.VERBOSE_CLIENT)
-                Logger.log(e);
+            //if (Logger.VERBOSE_CLIENT)
+                //Logger.log(TAG, e);
         } catch (Exception e) {
             reject(ERROR_FAILURE);
-            if (Logger.VERBOSE_CLIENT)
-                Logger.log(e);
+            //if (Logger.VERBOSE_CLIENT)
+                //Logger.log(TAG, e);
         }
     }
 
@@ -48,8 +53,8 @@ public class Client extends Protocol implements Runnable {
         try {
             server.send(request.reject(errorCode));
         } catch (IOException e) {
-            if (Logger.VERBOSE_CLIENT)
-                Logger.log(e);
+            //if (Logger.VERBOSE_CLIENT)
+                //Logger.log(TAG, e);
         }
     }
 }

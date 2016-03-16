@@ -4,12 +4,16 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 
 public class Logger {
-    public static final boolean VERBOSE_BASE = true;
-    public static final boolean VERBOSE_CIRCLE = true;
-    public static final boolean VERBOSE_CLIENT = true;
-    public static final boolean VERBOSE_DISTRIBUTION = true;
-    public static final boolean VERBOSE_SERVER = true;
-    public static final boolean VERBOSE_REQUEST = true;
+    public static final boolean VERBOSE = false;
+    public static final boolean VERBOSE_BASE = VERBOSE && true;
+    public static final boolean VERBOSE_CIRCLE = VERBOSE && true;
+    public static final boolean VERBOSE_CLIENT = VERBOSE && true;
+    public static final boolean VERBOSE_DATABASE = VERBOSE && true;
+    public static final boolean VERBOSE_INTERNAL_SERVER = VERBOSE && true;
+    public static final boolean VERBOSE_SERVER = VERBOSE && true;
+    public static final boolean VERBOSE_REQUEST = VERBOSE && true;
+    public static final boolean VERBOSE_RETRY = VERBOSE && true;
+    public static final boolean VERBOSE_ROUTE = VERBOSE && true;
 
     public static final String FILENAME_LOG = "server.log";
 
@@ -27,16 +31,18 @@ public class Logger {
         logger = new FileWriter(FILENAME_LOG, true);
     }
 
-    public static void log(Throwable e) {
+    public static void log(String tag, Throwable e) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         e.printStackTrace(pw);
 
-        log(sw.getBuffer().toString());
+        log(tag, sw.getBuffer().toString());
     }
 
-    public static void log(String log) {
+    public static void log(String tag, String log) {
         try {
+            if (tag != null)
+                logger.write(tag + ":");
             logger.write(log + "\n");
             logger.flush();
         } catch (IOException ignored) {}

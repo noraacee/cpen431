@@ -9,18 +9,21 @@ import java.math.BigInteger;
 import java.net.InetAddress;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.NoSuchElementException;
+import java.util.concurrent.ConcurrentNavigableMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 public class Circle {
+    private static final String TAG = "circle";
+
     private static final String ALGORITHM_HASH = "MD5";
     private static final String DELIMITER_NODE = ":";
     private static final String IGNORED_NODE = "#";
 
-    private SortedMap<BigInteger, Node> nodes;
+    private ConcurrentSkipListMap<BigInteger, Node> nodes;
 
     public Circle(String nodesFileName) throws Exception {
-        nodes = new TreeMap<>();
+        nodes = new ConcurrentSkipListMap<>();
 
         initNodes(nodesFileName);
     }
@@ -29,19 +32,18 @@ public class Circle {
         Node node = nodes.get(key);
 
         if (Logger.VERBOSE_CIRCLE)
-            Logger.log("retrieved node [" + node.getIp().getHostAddress() + ":" + node.getPort() + "]");
+            Logger.log(TAG, "retrieved node [" + node.getIp().getHostAddress() + ":" + node.getPort() + "]");
 
         return node;
     }
 
     public BigInteger getNodeKey(byte[] key) {
         BigInteger nodeKey = hash(key);
-        if (!nodes.containsKey(nodeKey)) {
-            SortedMap<BigInteger, Node> tailMap = nodes.tailMap(nodeKey);
-            nodeKey = tailMap.isEmpty() ? nodes.firstKey() : tailMap.firstKey();
-        }
 
-        return nodeKey;
+        if (nodeKey == null)
+            return null;
+
+        return getNodeKey(nodeKey);
     }
 
     public BigInteger getKey(String key) {
@@ -52,11 +54,24 @@ public class Circle {
         nodes.remove(key);
     }
 
+    private BigInteger getNodeKey(BigInteger key) {
+        try {
+            if (!nodes.containsKey(key)) {
+                ConcurrentNavigableMap<BigInteger, Node> tailMap = nodes.tailMap(key);
+                key = tailMap.isEmpty() ? nodes.firstKey() : tailMap.firstKey();
+            }
+        } catch (NoSuchElementException e) {
+            return getNodeKey(key);
+        }
+
+        return key;
+    }
+
     private BigInteger hash(byte[] key) {
         MessageDigest md;
         try {
             md = MessageDigest.getInstance(ALGORITHM_HASH);
-        } catch (NoSuchAlgorithmException e) {
+        } catch (NoSuchAlgorithmException ignored) {
             return null;
         }
 
@@ -77,13 +92,20 @@ public class Circle {
             if (line.contains(IGNORED_NODE))
                 continue;
 
+            if (!line.contains(DELIMITER_NODE))
+                continue;
+
             parts = line.split(DELIMITER_NODE);
             node = new Node(InetAddress.getByName(parts[0]), Integer.parseInt(parts[1]));
 
-            nodes.put(hash(line.getBytes()), node);
+            BigInteger nodeKey = hash(line.getBytes());
+            if (nodeKey == null)
+                continue;
+
+            nodes.put(nodeKey, node);
 
             if (Logger.VERBOSE_CIRCLE)
-                Logger.log("added node [" + line + "]");
+                Logger.log(TAG, "added node [" + line + "]");
         }
 
         bufferedReader.close();

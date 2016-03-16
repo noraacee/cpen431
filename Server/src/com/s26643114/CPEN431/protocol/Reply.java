@@ -5,21 +5,37 @@ import com.s26643114.CPEN431.util.ByteUtil;
 import java.net.DatagramPacket;
 
 public class Reply extends Protocol {
+    public static byte[] createInternalReply(DatagramPacket packet, long nanoTime) {
+        byte[] reply = packet.getData();
+
+        System.arraycopy(packet.getAddress().getAddress(), 0, reply, packet.getLength(), LENGTH_IP);
+        ByteUtil.int2leb(packet.getPort(), reply, packet.getLength() + LENGTH_IP, LENGTH_PORT);
+
+        reply[LENGTH_UNIQUE_ID] += MASK_COMMAND;
+
+        long instant = System.currentTimeMillis() * 1000 + (System.nanoTime() - nanoTime) % 1000;
+        ByteUtil.longToByteArray(reply, instant, packet.getLength() + LENGTH_IP + LENGTH_PORT);
+
+        packet.setLength(packet.getLength() + LENGTH_IP + LENGTH_PORT + LENGTH_INSTANT);
+
+        return reply;
+    }
+
     public static byte[] createReply(DatagramPacket packet, byte[] uniqueId, byte errorCode) {
-        byte[] reply = new byte[LENGTH_UNIQUE_ID + LENGTH_CODE + Long.BYTES];
+        byte[] reply = new byte[LENGTH_UNIQUE_ID + LENGTH_CODE + LENGTH_INSTANT];
         System.arraycopy(uniqueId, 0, reply, 0, LENGTH_UNIQUE_ID);
 
         reply[LENGTH_UNIQUE_ID] = errorCode;
 
         packet.setData(reply);
-        packet.setLength(reply.length - Long.BYTES);
+        packet.setLength(reply.length - LENGTH_INSTANT);
 
         return reply;
     }
 
     public static byte[] createReply(DatagramPacket packet, byte[] uniqueId, byte[] value) {
         int length = LENGTH_UNIQUE_ID + LENGTH_CODE + LENGTH_VALUE_LENGTH + value.length;
-        byte[] reply = new byte[length + Long.BYTES];
+        byte[] reply = new byte[length + LENGTH_INSTANT];
 
         int index = 0;
 
@@ -47,6 +63,6 @@ public class Reply extends Protocol {
 
     public static void setReply(DatagramPacket packet, byte[] reply) {
         packet.setData(reply);
-        packet.setLength(reply.length - Long.BYTES);
+        packet.setLength(reply.length - LENGTH_INSTANT);
     }
 }

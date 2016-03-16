@@ -2,6 +2,7 @@ CPEN 431 Test Client
 Build Date: Thu Mar 10 02:46:45 PST 2016
 [A5 Tests]
 Done building node list.
+Results server is up. Secret is valid.
 Checking if server is up... [OK]
 Sending WIPEOUT to all servers... [OK]
 
@@ -24,7 +25,605 @@ TEST_PASSED
 TEST_PASSED
 
 [ TEST Random Front-End Basic (PUT -> GET -> REM -> REM -> GET). Value Length = 2048 Bytes ]
-REM1 failed!
-TEST_FAILED
-Potentially buggy implementation. Aborting!
-Testing completed in 3.287s
+TEST_PASSED
+
+[ TEST Random Front-End Basic (PUT -> GET -> REM -> REM -> GET). Value Length = 10000 Bytes ]
+TEST_PASSED
+
+[ TEST Single Server At-Most-Once Client Policy (PUT -> REM -> REM) ]
+TEST_PASSED
+
+[ TEST Single Front-End Performance (1 clients, 60.0 seconds): PUT -> GET (closed loop) ]
+Test time limit reached: 60.0s.
+Test completed after 1473 closed loops.
+Checking if server(s) are up... [OK]
+Stage 1 Single Front-End: Test Status: TEST_PASSED
+Clients: 1
+Total Requests (without replies): 2946
+Total Requests (including replies): 2948
+Successful Responses: 2946
+Timeout Responses: 0
+Total Failed Responses: 0
+% Success: 100.0
+% Timeout: 0.0
+% Failed: 0.0
+Response Time (Successful requests):
+[max] 2619ms, [min] 2ms
+[avg] 20.130346232179225 ms, [stdev] 50.49084914720492ms
+Throughput: 49.05830044462207 requests per second
+Goodput: 49.05830044462207 requests per second
+Retry Rate (Successful requests): 1.0006788866259335
+Sending WIPEOUT to all servers... [OK]
+
+[ TEST Single Front-End Performance (4 clients, 60.0 seconds): PUT -> GET (closed loop) ]
+Test time limit reached: 60.0s.
+Test time limit reached: 60.0s.
+Test completed after 1491 closed loops.
+Test completed after 1414 closed loops.
+Test time limit reached: 60.0s.
+Test time limit reached: 60.0s.
+Test completed after 1457 closed loops.
+Test completed after 1453 closed loops.
+Checking if server(s) are up... [OK]
+Stage 1 Single Front-End: Test Status: TEST_PASSED
+Clients: 4
+Total Requests (without replies): 11630
+Total Requests (including replies): 11632
+Successful Responses: 11630
+Timeout Responses: 0
+Total Failed Responses: 0
+% Success: 100.0
+% Timeout: 0.0
+% Failed: 0.0
+Response Time (Successful requests):
+[max] 1106ms, [min] 2ms
+[avg] 20.342906276870163 ms, [stdev] 25.398506550105573ms
+Throughput: 193.71710307149044 requests per second
+Goodput: 193.71710307149044 requests per second
+Retry Rate (Successful requests): 1.0001719690455717
+Sending WIPEOUT to all servers... [OK]
+
+[ TEST Single Front-End Performance (16 clients, 60.0 seconds): PUT -> GET (closed loop) ]
+Test time limit reached: 60.0s.
+Test completed after 331 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 348 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 348 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 347 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 343 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 347 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 338 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 348 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 357 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 333 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 357 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 349 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 350 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 343 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 350 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 349 closed loops.
+Checking if server(s) are up... [OK]
+Stage 1 Single Front-End: Test Status: TEST_PASSED
+Clients: 16
+Total Requests (without replies): 11076
+Total Requests (including replies): 11086
+Successful Responses: 11076
+Timeout Responses: 0
+Total Failed Responses: 0
+% Success: 100.0
+% Timeout: 0.0
+% Failed: 0.0
+Response Time (Successful requests):
+[max] 1706ms, [min] 3ms
+[avg] 73.09994582881907 ms, [stdev] 45.120748434897926ms
+Throughput: 179.99804985861476 requests per second
+Goodput: 179.99804985861476 requests per second
+Retry Rate (Successful requests): 1.000902853015529
+Sending WIPEOUT to all servers... [OK]
+
+[ TEST Random Front-End Performance (1 clients, 60.0 seconds): PUT -> GET (closed loop) ]
+Test time limit reached: 60.0s.
+Test completed after 1153 closed loops.
+Checking if server(s) are up... [OK]
+TEST_PASSED
+Stage 1 Random Front-End: Test Status: TEST_PASSED
+Clients: 1
+Total Requests (without replies): 2306
+Total Requests (including replies): 2306
+Successful Responses: 2306
+Timeout Responses: 0
+Total Failed Responses: 0
+% Success: 100.0
+% Timeout: 0.0
+% Failed: 0.0
+Response Time (Successful requests):
+[max] 202ms, [min] 2ms
+[avg] 25.78751084128361 ms, [stdev] 16.8082120761543ms
+Throughput: 38.41796614687458 requests per second
+Goodput: 38.41796614687458 requests per second
+Retry Rate (Successful requests): 1.0
+Sending WIPEOUT to all servers... [OK]
+
+[ TEST Random Front-End Performance (4 clients, 60.0 seconds): PUT -> GET (closed loop) ]
+Test time limit reached: 60.0s.
+Test time limit reached: 60.0s.
+Test completed after 1136 closed loops.
+Test completed after 1140 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 1114 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 1114 closed loops.
+Checking if server(s) are up... [OK]
+TEST_PASSED
+Stage 1 Random Front-End: Test Status: TEST_PASSED
+Clients: 4
+Total Requests (without replies): 9008
+Total Requests (including replies): 9008
+Successful Responses: 9008
+Timeout Responses: 0
+Total Failed Responses: 0
+% Success: 100.0
+% Timeout: 0.0
+% Failed: 0.0
+Response Time (Successful requests):
+[max] 555ms, [min] 2ms
+[avg] 26.38732238010657 ms, [stdev] 23.138305380205534ms
+Throughput: 150.02331623476118 requests per second
+Goodput: 150.02331623476118 requests per second
+Retry Rate (Successful requests): 1.0
+Sending WIPEOUT to all servers... [OK]
+
+[ TEST Random Front-End Performance (16 clients, 60.0 seconds): PUT -> GET (closed loop) ]
+Test time limit reached: 60.0s.
+Test completed after 282 closed loops.
+Test time limit reached: 60.0s.
+Test time limit reached: 60.0s.
+Test completed after 277 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 281 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 278 closed loops.
+Test completed after 283 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 275 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 280 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 281 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 278 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 281 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 280 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 285 closed loops.
+Test time limit reached: 60.0s.
+Test time limit reached: 60.0s.
+Test completed after 280 closed loops.
+Test completed after 274 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 278 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 280 closed loops.
+Checking if server(s) are up... [OK]
+TEST_PASSED
+Stage 1 Random Front-End: Test Status: TEST_PASSED
+Clients: 16
+Total Requests (without replies): 8946
+Total Requests (including replies): 8947
+Successful Responses: 8946
+Timeout Responses: 0
+Total Failed Responses: 0
+% Success: 100.0
+% Timeout: 0.0
+% Failed: 0.0
+Response Time (Successful requests):
+[max] 633ms, [min] 4ms
+[avg] 95.38631790744466 ms, [stdev] 41.78947011868356ms
+Throughput: 148.9039431415303 requests per second
+Goodput: 148.9039431415303 requests per second
+Retry Rate (Successful requests): 1.0001117818019227
+Sending WIPEOUT to all servers... [OK]
+
+[ TEST Capacity Insert (Value Size = 10000 bytes, Limit = 2000 PUTs, ~19.07 MiB) ]
+Issuing puts... [DONE in 11.816s]
+Confirming... [DONE in 12.84s]
+TEST_PASSED
+
+[ TEST Crash; Key Recovery ]
+Checking if server(s) are up... [OK]
+Checking if server(s) are up... [OK]
+Determining if storage was successful... [DONE in 13.494s]
+Sending SHUTDOWN to 3 servers.
+Checking if server(s) are down... [OK]
+Checking if server(s) are up... [OK]
+Attempting retrieval of keys... [DONE in 30.439s]
+Checking if server(s) are down... [OK]
+Checking if server(s) are up... [OK]
+Of 2000 usable puts:
+Failed: 763 Timed out: 40 Invalid value: 0
+Expecting 30.0% keys to fail. Actual failed: 40.15%
+TEST_PASSED
+
+[ TEST Single Front-End Performance (1 clients, 60.0 seconds): PUT -> GET (closed loop) ]
+Test time limit reached: 60.0s.
+Test completed after 1460 closed loops.
+Checking if server(s) are up... [OK]
+Stage 2 Single Front-End: Test Status: TEST_PASSED
+Clients: 1
+Total Requests (without replies): 2920
+Total Requests (including replies): 2920
+Successful Responses: 2920
+Timeout Responses: 0
+Total Failed Responses: 0
+% Success: 100.0
+% Timeout: 0.0
+% Failed: 0.0
+Response Time (Successful requests):
+[max] 220ms, [min] 2ms
+[avg] 20.337671232876712 ms, [stdev] 12.081218529278416ms
+Throughput: 48.65612450635695 requests per second
+Goodput: 48.65612450635695 requests per second
+Retry Rate (Successful requests): 1.0
+Sending WIPEOUT to all servers... [OK]
+
+[ TEST Single Front-End Performance (4 clients, 60.0 seconds): PUT -> GET (closed loop) ]
+Test time limit reached: 60.0s.
+Test completed after 1454 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 1473 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 1421 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 1461 closed loops.
+Checking if server(s) are up... [OK]
+Stage 2 Single Front-End: Test Status: TEST_PASSED
+Clients: 4
+Total Requests (without replies): 11618
+Total Requests (including replies): 11618
+Successful Responses: 11618
+Timeout Responses: 0
+Total Failed Responses: 0
+% Success: 100.0
+% Timeout: 0.0
+% Failed: 0.0
+Response Time (Successful requests):
+[max] 220ms, [min] 2ms
+[avg] 20.423308658977447 ms, [stdev] 12.27484838645983ms
+Throughput: 193.42057070555722 requests per second
+Goodput: 193.42057070555722 requests per second
+Retry Rate (Successful requests): 1.0
+Sending WIPEOUT to all servers... [OK]
+
+[ TEST Single Front-End Performance (16 clients, 60.0 seconds): PUT -> GET (closed loop) ]
+Test time limit reached: 60.0s.
+Test time limit reached: 60.0s.
+Test completed after 328 closed loops.
+Test completed after 327 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 317 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 322 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 325 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 318 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 325 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 330 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 328 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 325 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 340 closed loops.
+Test time limit reached: 60.0s.
+Test time limit reached: 60.0s.
+Test completed after 328 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 335 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 333 closed loops.
+Test completed after 322 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 329 closed loops.
+Checking if server(s) are up... [OK]
+Stage 2 Single Front-End: Test Status: TEST_PASSED
+Clients: 16
+Total Requests (without replies): 10464
+Total Requests (including replies): 10542
+Successful Responses: 10464
+Timeout Responses: 0
+Total Failed Responses: 0
+% Success: 100.0
+% Timeout: 0.0
+% Failed: 0.0
+Response Time (Successful requests):
+[max] 2379ms, [min] 3ms
+[avg] 79.29080657492355 ms, [stdev] 111.99016742092665ms
+Throughput: 173.99980045894443 requests per second
+Goodput: 173.99980045894443 requests per second
+Retry Rate (Successful requests): 1.007454128440367
+Sending WIPEOUT to all servers... [OK]
+
+[ TEST Random Front-End Performance (1 clients, 60.0 seconds): PUT -> GET (closed loop) ]
+Test time limit reached: 60.0s.
+Test completed after 1006 closed loops.
+Checking if server(s) are up... [OK]
+TEST_PASSED
+Stage 2 Random Front-End: Test Status: TEST_PASSED
+Clients: 1
+Total Requests (without replies): 2012
+Total Requests (including replies): 2016
+Successful Responses: 2012
+Timeout Responses: 0
+Total Failed Responses: 0
+% Success: 100.0
+% Timeout: 0.0
+% Failed: 0.0
+Response Time (Successful requests):
+[max] 2226ms, [min] 3ms
+[avg] 29.593936381709742 ms, [stdev] 64.27323185443403ms
+Throughput: 33.52495209530951 requests per second
+Goodput: 33.52495209530951 requests per second
+Retry Rate (Successful requests): 1.0019880715705765
+Sending WIPEOUT to all servers... [OK]
+
+[ TEST Random Front-End Performance (4 clients, 60.0 seconds): PUT -> GET (closed loop) ]
+Test time limit reached: 60.0s.
+Test completed after 889 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 911 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 912 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 901 closed loops.
+Checking if server(s) are up... [OK]
+TEST_PASSED
+Stage 2 Random Front-End: Test Status: TEST_PASSED
+Clients: 4
+Total Requests (without replies): 7226
+Total Requests (including replies): 7254
+Successful Responses: 7226
+Timeout Responses: 0
+Total Failed Responses: 0
+% Success: 100.0
+% Timeout: 0.0
+% Failed: 0.0
+Response Time (Successful requests):
+[max] 2896ms, [min] 3ms
+[avg] 32.96540271242735 ms, [stdev] 104.90354547979581ms
+Throughput: 120.37916271011379 requests per second
+Goodput: 120.37916271011379 requests per second
+Retry Rate (Successful requests): 1.0038748962081372
+Sending WIPEOUT to all servers... [OK]
+
+[ TEST Random Front-End Performance (16 clients, 60.0 seconds): PUT -> GET (closed loop) ]
+Test time limit reached: 60.0s.
+Test completed after 361 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 365 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 360 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 357 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 359 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 352 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 350 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 352 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 356 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 357 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 357 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 355 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 358 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 353 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 356 closed loops.
+Test time limit reached: 60.0s.
+Test completed after 363 closed loops.
+Checking if server(s) are up... [OK]
+TEST_PASSED
+Stage 2 Random Front-End: Test Status: TEST_PASSED
+Clients: 16
+Total Requests (without replies): 11422
+Total Requests (including replies): 11424
+Successful Responses: 11422
+Timeout Responses: 0
+Total Failed Responses: 0
+% Success: 100.0
+% Timeout: 0.0
+% Failed: 0.0
+Response Time (Successful requests):
+[max] 685ms, [min] 5ms
+[avg] 71.24890562073192 ms, [stdev] 28.698917316376807ms
+Throughput: 190.0151386601454 requests per second
+Goodput: 190.0151386601454 requests per second
+Retry Rate (Successful requests): 1.0001751006828927
+Sending WIPEOUT to all servers... [OK]
+Checking if server(s) are down... [OK]
+
+Results Summary:
+Client Local Hostname : AC
+Client Local IP : AC/128.189.186.91
+Insert Capacity (MiB) : 19.07
+Server Count : 10
+Server List : 206.12.16.155_12664_142.103.2.2_12664_128.208.4.198_12664_128.208.4.99_12664_128.223.8.114_12664_128.223.8.111_12664_128.223.8.112_12664_153.90.1.34_12664_131.179.150.70_12664_131.179.150.72_12664_
+Stage 1 Random Front-End: 1 Client(s) % Failed : 0.0
+Stage 1 Random Front-End: 1 Client(s) % Success : 100.0
+Stage 1 Random Front-End: 1 Client(s) % Timeout : 0.0
+Stage 1 Random Front-End: 1 Client(s) Average Response Time (ms) : 26.0
+Stage 1 Random Front-End: 1 Client(s) Goodput (Requests per Second) : 39.0
+Stage 1 Random Front-End: 1 Client(s) Maximum Response Time (ms) : 202.0
+Stage 1 Random Front-End: 1 Client(s) STDEV Response Time (ms) : 17.0
+Stage 1 Random Front-End: 1 Client(s) Successful Responses : 2306
+Stage 1 Random Front-End: 1 Client(s) Timeout Responses : 0
+Stage 1 Random Front-End: 1 Client(s) Total Failed Responses : 0
+Stage 1 Random Front-End: 1 Client(s) Total Requests (including replies) : 2306
+Stage 1 Random Front-End: 1 Client(s) Total Requests (without replies) : 2306
+Stage 1 Random Front-End: 16 Client(s) % Failed : 0.0
+Stage 1 Random Front-End: 16 Client(s) % Success : 100.0
+Stage 1 Random Front-End: 16 Client(s) % Timeout : 0.0
+Stage 1 Random Front-End: 16 Client(s) Average Response Time (ms) : 96.0
+Stage 1 Random Front-End: 16 Client(s) Goodput (Requests per Second) : 149.0
+Stage 1 Random Front-End: 16 Client(s) Maximum Response Time (ms) : 633.0
+Stage 1 Random Front-End: 16 Client(s) STDEV Response Time (ms) : 42.0
+Stage 1 Random Front-End: 16 Client(s) Successful Responses : 8946
+Stage 1 Random Front-End: 16 Client(s) Timeout Responses : 0
+Stage 1 Random Front-End: 16 Client(s) Total Failed Responses : 0
+Stage 1 Random Front-End: 16 Client(s) Total Requests (including replies) : 8947
+Stage 1 Random Front-End: 16 Client(s) Total Requests (without replies) : 8946
+Stage 1 Random Front-End: 4 Client(s) % Failed : 0.0
+Stage 1 Random Front-End: 4 Client(s) % Success : 100.0
+Stage 1 Random Front-End: 4 Client(s) % Timeout : 0.0
+Stage 1 Random Front-End: 4 Client(s) Average Response Time (ms) : 27.0
+Stage 1 Random Front-End: 4 Client(s) Goodput (Requests per Second) : 151.0
+Stage 1 Random Front-End: 4 Client(s) Maximum Response Time (ms) : 555.0
+Stage 1 Random Front-End: 4 Client(s) STDEV Response Time (ms) : 24.0
+Stage 1 Random Front-End: 4 Client(s) Successful Responses : 9008
+Stage 1 Random Front-End: 4 Client(s) Timeout Responses : 0
+Stage 1 Random Front-End: 4 Client(s) Total Failed Responses : 0
+Stage 1 Random Front-End: 4 Client(s) Total Requests (including replies) : 9008
+Stage 1 Random Front-End: 4 Client(s) Total Requests (without replies) : 9008
+Stage 1 Single Front-End: 1 Client(s) % Failed : 0.0
+Stage 1 Single Front-End: 1 Client(s) % Success : 100.0
+Stage 1 Single Front-End: 1 Client(s) % Timeout : 0.0
+Stage 1 Single Front-End: 1 Client(s) Average Response Time (ms) : 21.0
+Stage 1 Single Front-End: 1 Client(s) Goodput (Requests per Second) : 50.0
+Stage 1 Single Front-End: 1 Client(s) Maximum Response Time (ms) : 2619.0
+Stage 1 Single Front-End: 1 Client(s) STDEV Response Time (ms) : 51.0
+Stage 1 Single Front-End: 1 Client(s) Successful Responses : 2946
+Stage 1 Single Front-End: 1 Client(s) Timeout Responses : 0
+Stage 1 Single Front-End: 1 Client(s) Total Failed Responses : 0
+Stage 1 Single Front-End: 1 Client(s) Total Requests (including replies) : 2948
+Stage 1 Single Front-End: 1 Client(s) Total Requests (without replies) : 2946
+Stage 1 Single Front-End: 16 Client(s) % Failed : 0.0
+Stage 1 Single Front-End: 16 Client(s) % Success : 100.0
+Stage 1 Single Front-End: 16 Client(s) % Timeout : 0.0
+Stage 1 Single Front-End: 16 Client(s) Average Response Time (ms) : 74.0
+Stage 1 Single Front-End: 16 Client(s) Goodput (Requests per Second) : 180.0
+Stage 1 Single Front-End: 16 Client(s) Maximum Response Time (ms) : 1706.0
+Stage 1 Single Front-End: 16 Client(s) STDEV Response Time (ms) : 46.0
+Stage 1 Single Front-End: 16 Client(s) Successful Responses : 11076
+Stage 1 Single Front-End: 16 Client(s) Timeout Responses : 0
+Stage 1 Single Front-End: 16 Client(s) Total Failed Responses : 0
+Stage 1 Single Front-End: 16 Client(s) Total Requests (including replies) : 11086
+Stage 1 Single Front-End: 16 Client(s) Total Requests (without replies) : 11076
+Stage 1 Single Front-End: 4 Client(s) % Failed : 0.0
+Stage 1 Single Front-End: 4 Client(s) % Success : 100.0
+Stage 1 Single Front-End: 4 Client(s) % Timeout : 0.0
+Stage 1 Single Front-End: 4 Client(s) Average Response Time (ms) : 21.0
+Stage 1 Single Front-End: 4 Client(s) Goodput (Requests per Second) : 194.0
+Stage 1 Single Front-End: 4 Client(s) Maximum Response Time (ms) : 1106.0
+Stage 1 Single Front-End: 4 Client(s) STDEV Response Time (ms) : 26.0
+Stage 1 Single Front-End: 4 Client(s) Successful Responses : 11630
+Stage 1 Single Front-End: 4 Client(s) Timeout Responses : 0
+Stage 1 Single Front-End: 4 Client(s) Total Failed Responses : 0
+Stage 1 Single Front-End: 4 Client(s) Total Requests (including replies) : 11632
+Stage 1 Single Front-End: 4 Client(s) Total Requests (without replies) : 11630
+Stage 2 Random Front-End: 1 Client(s) % Failed : 0.0
+Stage 2 Random Front-End: 1 Client(s) % Success : 100.0
+Stage 2 Random Front-End: 1 Client(s) % Timeout : 0.0
+Stage 2 Random Front-End: 1 Client(s) Average Response Time (ms) : 30.0
+Stage 2 Random Front-End: 1 Client(s) Goodput (Requests per Second) : 34.0
+Stage 2 Random Front-End: 1 Client(s) Maximum Response Time (ms) : 2226.0
+Stage 2 Random Front-End: 1 Client(s) STDEV Response Time (ms) : 65.0
+Stage 2 Random Front-End: 1 Client(s) Successful Responses : 2012
+Stage 2 Random Front-End: 1 Client(s) Timeout Responses : 0
+Stage 2 Random Front-End: 1 Client(s) Total Failed Responses : 0
+Stage 2 Random Front-End: 1 Client(s) Total Requests (including replies) : 2016
+Stage 2 Random Front-End: 1 Client(s) Total Requests (without replies) : 2012
+Stage 2 Random Front-End: 16 Client(s) % Failed : 0.0
+Stage 2 Random Front-End: 16 Client(s) % Success : 100.0
+Stage 2 Random Front-End: 16 Client(s) % Timeout : 0.0
+Stage 2 Random Front-End: 16 Client(s) Average Response Time (ms) : 72.0
+Stage 2 Random Front-End: 16 Client(s) Goodput (Requests per Second) : 191.0
+Stage 2 Random Front-End: 16 Client(s) Maximum Response Time (ms) : 685.0
+Stage 2 Random Front-End: 16 Client(s) STDEV Response Time (ms) : 29.0
+Stage 2 Random Front-End: 16 Client(s) Successful Responses : 11422
+Stage 2 Random Front-End: 16 Client(s) Timeout Responses : 0
+Stage 2 Random Front-End: 16 Client(s) Total Failed Responses : 0
+Stage 2 Random Front-End: 16 Client(s) Total Requests (including replies) : 11424
+Stage 2 Random Front-End: 16 Client(s) Total Requests (without replies) : 11422
+Stage 2 Random Front-End: 4 Client(s) % Failed : 0.0
+Stage 2 Random Front-End: 4 Client(s) % Success : 100.0
+Stage 2 Random Front-End: 4 Client(s) % Timeout : 0.0
+Stage 2 Random Front-End: 4 Client(s) Average Response Time (ms) : 33.0
+Stage 2 Random Front-End: 4 Client(s) Goodput (Requests per Second) : 121.0
+Stage 2 Random Front-End: 4 Client(s) Maximum Response Time (ms) : 2896.0
+Stage 2 Random Front-End: 4 Client(s) STDEV Response Time (ms) : 105.0
+Stage 2 Random Front-End: 4 Client(s) Successful Responses : 7226
+Stage 2 Random Front-End: 4 Client(s) Timeout Responses : 0
+Stage 2 Random Front-End: 4 Client(s) Total Failed Responses : 0
+Stage 2 Random Front-End: 4 Client(s) Total Requests (including replies) : 7254
+Stage 2 Random Front-End: 4 Client(s) Total Requests (without replies) : 7226
+Stage 2 Single Front-End: 1 Client(s) % Failed : 0.0
+Stage 2 Single Front-End: 1 Client(s) % Success : 100.0
+Stage 2 Single Front-End: 1 Client(s) % Timeout : 0.0
+Stage 2 Single Front-End: 1 Client(s) Average Response Time (ms) : 21.0
+Stage 2 Single Front-End: 1 Client(s) Goodput (Requests per Second) : 49.0
+Stage 2 Single Front-End: 1 Client(s) Maximum Response Time (ms) : 220.0
+Stage 2 Single Front-End: 1 Client(s) STDEV Response Time (ms) : 13.0
+Stage 2 Single Front-End: 1 Client(s) Successful Responses : 2920
+Stage 2 Single Front-End: 1 Client(s) Timeout Responses : 0
+Stage 2 Single Front-End: 1 Client(s) Total Failed Responses : 0
+Stage 2 Single Front-End: 1 Client(s) Total Requests (including replies) : 2920
+Stage 2 Single Front-End: 1 Client(s) Total Requests (without replies) : 2920
+Stage 2 Single Front-End: 16 Client(s) % Failed : 0.0
+Stage 2 Single Front-End: 16 Client(s) % Success : 100.0
+Stage 2 Single Front-End: 16 Client(s) % Timeout : 0.0
+Stage 2 Single Front-End: 16 Client(s) Average Response Time (ms) : 80.0
+Stage 2 Single Front-End: 16 Client(s) Goodput (Requests per Second) : 174.0
+Stage 2 Single Front-End: 16 Client(s) Maximum Response Time (ms) : 2379.0
+Stage 2 Single Front-End: 16 Client(s) STDEV Response Time (ms) : 112.0
+Stage 2 Single Front-End: 16 Client(s) Successful Responses : 10464
+Stage 2 Single Front-End: 16 Client(s) Timeout Responses : 0
+Stage 2 Single Front-End: 16 Client(s) Total Failed Responses : 0
+Stage 2 Single Front-End: 16 Client(s) Total Requests (including replies) : 10542
+Stage 2 Single Front-End: 16 Client(s) Total Requests (without replies) : 10464
+Stage 2 Single Front-End: 4 Client(s) % Failed : 0.0
+Stage 2 Single Front-End: 4 Client(s) % Success : 100.0
+Stage 2 Single Front-End: 4 Client(s) % Timeout : 0.0
+Stage 2 Single Front-End: 4 Client(s) Average Response Time (ms) : 21.0
+Stage 2 Single Front-End: 4 Client(s) Goodput (Requests per Second) : 194.0
+Stage 2 Single Front-End: 4 Client(s) Maximum Response Time (ms) : 220.0
+Stage 2 Single Front-End: 4 Client(s) STDEV Response Time (ms) : 13.0
+Stage 2 Single Front-End: 4 Client(s) Successful Responses : 11618
+Stage 2 Single Front-End: 4 Client(s) Timeout Responses : 0
+Stage 2 Single Front-End: 4 Client(s) Total Failed Responses : 0
+Stage 2 Single Front-End: 4 Client(s) Total Requests (including replies) : 11618
+Stage 2 Single Front-End: 4 Client(s) Total Requests (without replies) : 11618
+Test Crash; Key Recovery : PASSED
+Test Random Front-End Basic : PASSED
+Test Single Front-End Basic : PASSED
+Test Single Server At-Most-Once Client Policy : PASSED
+Result Verification Code : 883B56C8CA4C9DEA01B01B9DBDEC38EB
+Results server is up. Secret is valid.
+Results successfully submitted.
+Completed A5 Tests.
+Testing completed in 1144.032s
