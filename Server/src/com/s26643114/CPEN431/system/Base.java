@@ -17,14 +17,15 @@ public class Base {
 
     private static final String FILENAME_NODES = "nodes.list";
     private static final String PATTERN_DATE_TIME = "yyyy-MM-dd HH:mm:ss";
-    private static final String TAG = "base";
     private static final String TIME_ZONE = "UTC-08:00";
 
     public static void main(String[] args) {
-        try {
-            Logger.init();
-        } catch (IOException e) {
-            return;
+        if (Logger.VERBOSE) {
+            try {
+                Logger.init();
+            } catch (IOException e) {
+                return;
+            }
         }
 
         try {
@@ -50,17 +51,20 @@ public class Base {
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern(PATTERN_DATE_TIME);
             ZonedDateTime now = ZonedDateTime.now(ZoneId.of(TIME_ZONE));
 
-            Logger.log(null, "[" + ip.getHostAddress() + ":" + port + "] at [" + now.format(dtf) + "]");
+            if (Logger.VERBOSE)
+                Logger.log(null, "[" + ip.getHostAddress() + ":" + port + "] at [" + now.format(dtf) + "]");
 
             Server server = new Server(ip, port);
             Route.init(server, nodesFileName);
             server.accept();
         } catch (Exception e) {
             if (Logger.VERBOSE_BASE)
-                Logger.log(TAG, e);
+                Logger.log(Logger.TAG_BASE, e);
         }
 
-        Logger.log(null, "node shutting down");
-        Logger.close();
+        if (Logger.VERBOSE) {
+            Logger.log(null, "node shutting down");
+            Logger.close();
+        }
     }
 }

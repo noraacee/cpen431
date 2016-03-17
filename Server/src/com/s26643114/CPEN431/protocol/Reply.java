@@ -1,11 +1,18 @@
 package com.s26643114.CPEN431.protocol;
 
 import com.s26643114.CPEN431.util.ByteUtil;
+import com.s26643114.CPEN431.util.Logger;
 
 import java.net.DatagramPacket;
 
 public class Reply extends Protocol {
     public static byte[] createInternalReply(DatagramPacket packet, long nanoTime) {
+        long start;
+        long end;
+
+        if (Logger.BENCHMARK_REPLY)
+            start = System.nanoTime();
+
         byte[] reply = packet.getData();
 
         System.arraycopy(packet.getAddress().getAddress(), 0, reply, packet.getLength(), LENGTH_IP);
@@ -18,10 +25,25 @@ public class Reply extends Protocol {
 
         packet.setLength(packet.getLength() + LENGTH_IP + LENGTH_PORT + LENGTH_INSTANT);
 
+        if (Logger.VERBOSE_REPLY)
+            Logger.log(Logger.TAG_REPLY, "internal reply to [" + packet.getAddress().getHostAddress() + ":" + packet.getPort()
+                    + "]: " + packet.getLength());
+
+        if (Logger.BENCHMARK_REPLY) {
+            end = System.nanoTime();
+            Logger.benchmark(Logger.TAG_REPLY, start, end, "internal");
+        }
+
         return reply;
     }
 
     public static byte[] createReply(DatagramPacket packet, byte[] uniqueId, byte errorCode) {
+        long start;
+        long end;
+
+        if (Logger.BENCHMARK_REPLY)
+            start = System.nanoTime();
+
         byte[] reply = new byte[LENGTH_UNIQUE_ID + LENGTH_CODE + LENGTH_INSTANT];
         System.arraycopy(uniqueId, 0, reply, 0, LENGTH_UNIQUE_ID);
 
@@ -30,10 +52,25 @@ public class Reply extends Protocol {
         packet.setData(reply);
         packet.setLength(reply.length - LENGTH_INSTANT);
 
+        if (Logger.VERBOSE_REPLY)
+            Logger.log(Logger.TAG_REPLY, "reply to [" + packet.getAddress().getHostAddress() + ":" + packet.getPort()
+                    + "]: " + packet.getLength());
+
+        if (Logger.BENCHMARK_REPLY) {
+            end = System.nanoTime();
+            Logger.benchmark(Logger.TAG_REPLY, start, end, "error code reply");
+        }
+
         return reply;
     }
 
     public static byte[] createReply(DatagramPacket packet, byte[] uniqueId, byte[] value) {
+        long start;
+        long end;
+
+        if (Logger.BENCHMARK_REPLY)
+            start = System.nanoTime();
+
         int length = LENGTH_UNIQUE_ID + LENGTH_CODE + LENGTH_VALUE_LENGTH + value.length;
         byte[] reply = new byte[length + LENGTH_INSTANT];
 
@@ -53,16 +90,33 @@ public class Reply extends Protocol {
         packet.setData(reply);
         packet.setLength(length);
 
+        if (Logger.VERBOSE_REPLY)
+            Logger.log(Logger.TAG_REPLY, "reply to [" + packet.getAddress().getHostAddress() + ":" + packet.getPort()
+                    + "]: " + packet.getLength());
+
+        if (Logger.BENCHMARK_REPLY) {
+            end = System.nanoTime();
+            Logger.benchmark(Logger.TAG_REPLY, start, end, "value reply");
+        }
+
         return reply;
     }
 
     public static void setReply(DatagramPacket packet, byte errorCode) {
         packet.getData()[LENGTH_UNIQUE_ID] = errorCode;
         packet.setLength(LENGTH_UNIQUE_ID + LENGTH_CODE);
+
+        if (Logger.VERBOSE_REPLY)
+            Logger.log(Logger.TAG_REPLY, "reply to [" + packet.getAddress().getHostAddress() + ":" + packet.getPort()
+                    + "]: " + packet.getLength());
     }
 
     public static void setReply(DatagramPacket packet, byte[] reply) {
         packet.setData(reply);
         packet.setLength(reply.length - LENGTH_INSTANT);
+
+        if (Logger.VERBOSE_REPLY)
+            Logger.log(Logger.TAG_REPLY, "reply to [" + packet.getAddress().getHostAddress() + ":" + packet.getPort()
+                    + "]: " + packet.getLength());
     }
 }

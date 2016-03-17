@@ -2,9 +2,8 @@ package com.s26643114.CPEN431.system;
 
 import com.s26643114.CPEN431.protocol.Protocol;
 import com.s26643114.CPEN431.protocol.Reply;
-import com.s26643114.CPEN431.protocol.Request;
 import com.s26643114.CPEN431.protocol.Retry;
-//import com.s26643114.CPEN431.util.Logger;
+import com.s26643114.CPEN431.util.Logger;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -16,9 +15,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Server extends Protocol {
-    private static final int SIZE_POOL = 32;
-
-    //private static final String TAG = "server";
+    private long end;
+    private long start;
 
     private AtomicBoolean shutdown;
 
@@ -36,10 +34,13 @@ public class Server extends Protocol {
         database = new Database();
         server = new DatagramSocket(port, ip);
 
-        executor = Executors.newFixedThreadPool(SIZE_POOL);
+        executor = Executors.newFixedThreadPool(SIZE_POOL_THREAD);
 
         internalServer = new InternalServer(shutdown, database);
         retry = new Retry(shutdown, database);
+
+        if (Logger.VERBOSE_SERVER)
+            Logger.log(Logger.TAG_SERVER, "started");
     }
 
     /**
@@ -50,56 +51,58 @@ public class Server extends Protocol {
         retry.start();
 
         while(!shutdown.get()) {
-            DatagramPacket packet = null;
+            Client client = database.pop(this, shutdown);
             try {
-                packet = new DatagramPacket(new byte[LENGTH_TOTAL], LENGTH_TOTAL);
+                if (Logger.BENCHMARK_SERVER)
+                    start = System.nanoTime();
 
-                server.receive(packet);
+                server.receive(client.getPacket());
 
-                Request request = new Request(shutdown, database, packet);
+                if (Logger.BENCHMARK_SERVER) {
+                    end = System.nanoTime();
+                    Logger.benchmark(Logger.TAG_SERVER, start, end, "receive");
+                    start = System.nanoTime();
+                }
 
-                executor.execute(new Client(this, request));
+                executor.execute(client);
+
+                if (Logger.BENCHMARK_SERVER) {
+                    end = System.nanoTime();
+                    Logger.benchmark(Logger.TAG_SERVER, start, end, "start client");
+                }
             } catch (OutOfMemoryError e) {
-                if (packet != null) {
-                    Reply.setReply(packet, ERROR_MEMORY);
-                    try {
-                        server.send(packet);
-                    } catch (IOException ioe) {
-                        //if (Logger.VERBOSE_SERVER)
-                            //Logger.log(TAG, ioe);
-                    }
-                }
-            } catch (Exception e) {
-                if (packet != null) {
-                    Reply.setReply(packet, ERROR_FAILURE);
-                    try {
-                        server.send(packet);
-                    } catch (IOException ioe) {
-                        //if (Logger.VERBOSE_SERVER)
-                            //Logger.log(TAG, ioe);
-                    }
-                }
+                Reply.setReply(client.getPacket(), ERROR_MEMORY);
 
-                //if (Logger.VERBOSE_SERVER)
-                    //Logger.log(TAG, e);
+                try {
+                    server.send(client.getPacket());
+                } catch (IOException ioe) {
+                    if (Logger.VERBOSE_SERVER)
+                        Logger.log(Logger.TAG_SERVER, ioe);
+                }
+            } catch (IOException e) {
+                if (Logger.VERBOSE_SERVER)
+                    Logger.log(Logger.TAG_SERVER, e);
             }
         }
 
-        //if (Logger.VERBOSE_SERVER)
-            //Logger.log(TAG, "shutting down threads");
+        if (Logger.VERBOSE_SERVER)
+            Logger.log(Logger.TAG_SERVER, "shutting down threads");
         executor.shutdown();
 
-        //if (Logger.VERBOSE_SERVER)
-            //Logger.log(TAG, "shutting down retry thread");
+        if (Logger.VERBOSE_SERVER)
+            Logger.log(Logger.TAG_SERVER, "shutting down retry thread");
         retry.interrupt();
 
-        //if (Logger.VERBOSE_SERVER)
-            //Logger.log(TAG, "shutting down internal server");
+        if (Logger.VERBOSE_SERVER)
+            Logger.log(Logger.TAG_SERVER, "shutting down internal server");
         internalServer.interrupt();
 
-        //if (Logger.VERBOSE_SERVER)
-            //Logger.log(TAG, "shutting down socket");
+        if (Logger.VERBOSE_SERVER)
+            Logger.log(Logger.TAG_SERVER, "shutting down socket");
         server.close();
+
+        if (Logger.VERBOSE_SERVER)
+            Logger.log(Logger.TAG_SERVER, "stopped");
     }
 
     public String getAddress() {
@@ -114,7 +117,15 @@ public class Server extends Protocol {
      * Sends a packet using server socket
      */
     public void send(DatagramPacket packet) throws IOException {
+        if (Logger.BENCHMARK_SERVER)
+            start = System.nanoTime();
+
         server.send(packet);
+
+        if (Logger.BENCHMARK_SERVER) {
+            end = System.nanoTime();
+            Logger.benchmark(Logger.TAG_SERVER, start, end, "send");
+        }
     }
 
     public AtomicBoolean sendInternal(DatagramPacket packet, long key, AtomicBoolean lock) throws IOException {

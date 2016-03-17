@@ -14,8 +14,6 @@ import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 public class Circle {
-    private static final String TAG = "circle";
-
     private static final String ALGORITHM_HASH = "MD5";
     private static final String DELIMITER_NODE = ":";
     private static final String IGNORED_NODE = "#";
@@ -32,7 +30,7 @@ public class Circle {
         Node node = nodes.get(key);
 
         if (Logger.VERBOSE_CIRCLE)
-            Logger.log(TAG, "retrieved node [" + node.getIp().getHostAddress() + ":" + node.getPort() + "]");
+            Logger.log(Logger.TAG_CIRCLE, "retrieved node [" + node.getIp().getHostAddress() + ":" + node.getPort() + "]");
 
         return node;
     }
@@ -51,7 +49,10 @@ public class Circle {
     }
 
     public void remove(BigInteger key) {
-        nodes.remove(key);
+        Node node = nodes.remove(key);
+
+        if (Logger.VERBOSE_CIRCLE)
+            Logger.log(Logger.TAG_CIRCLE, "removed node [" + node.getIp().getHostAddress() + ":" + node.getPort() + "]");
     }
 
     private BigInteger getNodeKey(BigInteger key) {
@@ -105,7 +106,7 @@ public class Circle {
             nodes.put(nodeKey, node);
 
             if (Logger.VERBOSE_CIRCLE)
-                Logger.log(TAG, "added node [" + line + "]");
+                Logger.log(Logger.TAG_CIRCLE, "added node [" + line + "]");
         }
 
         bufferedReader.close();

@@ -9,14 +9,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Handles client's retries
  */
 public class Retry extends Thread {
-    private static final String TAG = "retry";
-
     private AtomicBoolean shutdown;
     private Database database;
 
     public Retry(AtomicBoolean shutdown, Database database) {
         this.shutdown = shutdown;
         this.database = database;
+
+        if (Logger.VERBOSE_RETRY)
+            Logger.log(Logger.TAG_RETRY, "started");
     }
 
     /**
@@ -33,22 +34,21 @@ public class Retry extends Thread {
                 synchronized (this) {
                     try {
                         if (Logger.VERBOSE_RETRY)
-                            Logger.log(TAG, "waiting for " + timeout + " ms");
+                            Logger.log(Logger.TAG_RETRY, "wait: " + timeout + " ms");
+
                         wait(timeout);
                     } catch (InterruptedException e) {
                         if (Logger.VERBOSE_RETRY)
-                            Logger.log(TAG, "retry thread interrupted");
+                            Logger.log(Logger.TAG_RETRY, "interrupted");
                         break;
                     }
                 }
             }
 
-            if (Logger.VERBOSE_RETRY)
-                Logger.log(TAG, "removing retry after waiting for " + timeout + " ms");
             database.removeCache();
         }
 
         if (Logger.VERBOSE_RETRY)
-            Logger.log(TAG, "retry thread stopped");
+            Logger.log(Logger.TAG_RETRY, "stopped");
     }
 }

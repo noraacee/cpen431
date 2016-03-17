@@ -42,7 +42,9 @@ public class Protocol {
     public static final int LENGTH_TOTAL = LENGTH_UNIQUE_ID + LENGTH_CODE + LENGTH_KEY + LENGTH_VALUE_LENGTH
             + LENGTH_VALUE + LENGTH_IP + LENGTH_PORT + LENGTH_INSTANT;
 
-    public static final int MAX_STORE = 100000; // max number of key-value pairs in store
-    public static final int RETRIES = 3;        // number of retries for crashed node
-    public static final int TIMEOUT = 5000;     // time for reply cache and internal request
+    public static final int MAX_STORE = 100000;      // max number of key-value pairs in store
+    public static final int RETRIES = 3;             // number of retries for crashed node
+    public static final int SIZE_POOL_CLIENT = 72;   // size of pool of clients to reuse
+    public static final int SIZE_POOL_THREAD = 36;   // size of pool of threads to reuse
+    public static final int TIMEOUT = 5000;          // time for reply cache and internal request
 }
