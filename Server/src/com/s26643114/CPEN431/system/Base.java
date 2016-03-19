@@ -54,12 +54,14 @@ public class Base {
             if (Logger.VERBOSE)
                 Logger.log(null, "[" + ip.getHostAddress() + ":" + port + "] at [" + now.format(dtf) + "]");
 
+            Route.init(ip.getHostAddress(), nodesFileName);
             Server server = new Server(ip, port);
-            Route.init(server, nodesFileName);
+            Route.setServer(server);
             server.accept();
         } catch (Exception e) {
             if (Logger.VERBOSE_BASE)
                 Logger.log(Logger.TAG_BASE, e);
+            e.printStackTrace();
         }
 
         if (Logger.VERBOSE) {

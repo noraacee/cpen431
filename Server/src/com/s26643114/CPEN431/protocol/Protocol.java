@@ -34,6 +34,7 @@ public class Protocol {
     public static final int LENGTH_CODE = 1;
     public static final int LENGTH_INSTANT = Long.BYTES;
     public static final int LENGTH_IP = 4;
+    public static final int LENGTH_HEARTBEAT = LENGTH_IP + LENGTH_INSTANT;
     public static final int LENGTH_KEY = 32;
     public static final int LENGTH_PORT = 2;
     public static final int LENGTH_UNIQUE_ID = 16;
@@ -42,9 +43,12 @@ public class Protocol {
     public static final int LENGTH_TOTAL = LENGTH_UNIQUE_ID + LENGTH_CODE + LENGTH_KEY + LENGTH_VALUE_LENGTH
             + LENGTH_VALUE + LENGTH_IP + LENGTH_PORT + LENGTH_INSTANT;
 
-    public static final int MAX_STORE = 100000;      // max number of key-value pairs in store
-    public static final int RETRIES = 3;             // number of retries for crashed node
-    public static final int SIZE_POOL_CLIENT = 72;   // size of pool of clients to reuse
-    public static final int SIZE_POOL_THREAD = 36;   // size of pool of threads to reuse
-    public static final int TIMEOUT = 5000;          // time for reply cache and internal request
+    public static final int MAX_STORE = 100000;    // max number of key-value pairs in store
+    public static final int RETRIES = 3;           // number of retries for crashed node
+    public static final int SIZE_BUFFER = 131071;  // receive buffer for packets
+    public static final int SIZE_POOL_CLIENT = 128; // size of pool of clients to reuse
+    public static final int SIZE_POOL_THREAD = 64; // size of pool of threads to reuse
+    public static final int TIME_FAILURE = 25000;  // time until heartbeat failure
+    public static final int TIME_HEARTBEAT = 1000;  // time between each heartbeat
+    public static final int TIMEOUT = 5000;        // time for reply cache and internal request
 }

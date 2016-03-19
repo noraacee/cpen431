@@ -2,7 +2,6 @@
 
 import os
 import util
-from scp import SCPClient
 
 
 directory = 'deploy'
@@ -19,14 +18,11 @@ def main():
     os.chdir(directory)
 
     print "Modes:"
-    print "[1] Kill all nodes"
-    print "[2] Restart all nodess"
-    print "[3] Deploy all nodess"
-    print "[4] Check all nodess"
-    print "[5] Kill specific node(s)"
-    print "[6] Restart specific node(s)"
-    print "[7] Deploy sepcific node(s)"
-    print "[8] Check specific node(s)"
+    print "[0] Deploy nodes list"
+    print "[1] Deploy server"
+    print "[2] Restart"
+    print "[3] Kill"
+    print "[4] Check"
 
     mode = int(raw_input("\nSelect a mode: "))
     print ''
@@ -38,71 +34,79 @@ def main():
                 nodes_list.append(line.split(':')[0])
 
     nodes = []
-    if mode >= 5:
-        mode -= 4
-        print "Nodes:"
-        for i, node in enumerate(nodes_list):
-            print "[%d] %s" % (i + 1, node)
+    print "Nodes:"
+    print "[0] All"
+    for i, node in enumerate(nodes_list):
+        print "[%d] %s" % (i + 1, node)
 
-        servers = raw_input("\nSelect node(s) separated by a comma: ")
-        servers = servers.strip().split(",")
-        print ''
+    servers = raw_input("\nSelect node(s) separated by a comma: ")
+    servers = servers.strip().split(",")
+    print ''
 
+    if '0' in servers:
+        nodes = nodes_list
+    else:
         for index in servers:
             nodes.append(nodes_list[int(index) - 1])
-    else:
-        nodes = nodes_list
 
     with open(log_output, 'w') as log:
         for node in nodes:
             log.write("[" + node + "]\n")
+            if mode == 0:
+                print "deploy nodes list: " + node
             if mode == 1:
-                print "killing node: " + node
+                print "deploying node: " + node
             elif mode == 2:
                 print "restarting node: " + node
             elif mode == 3:
-                print "deploying node: " + node
+                print "killing node: " + node
             elif mode == 4:
                 print "checking node: " + node
 
-            with util.connect(node) as connection:
-                if connection is not None:
-                    if mode == 4:
-                        stdin, stdout, stderr = connection.exec_command(command_check)
-                        if stdout.channel.recv_exit_status() == 1:
-                            log.write("offline\n")
-                        else:
-                            log.write("online\n")
-                        continue
+            connection = util.connect(node)
 
-                    if mode == 3:
-                        with SCPClient(connection.get_transport()) as scp:
+            if connection is not None:
+                if mode == 4:
+                    stdin, stdout, stderr = connection.exec_command(command_check)
+                    if stdout.channel.recv_exit_status() == 1:
+                        log.write("offline\n")
+                    else:
+                        log.write("online\n")
+                    continue
+
+                if mode <= 1:
+                    with util.get_scp(connection) as scp:
+                        if mode == 1:
                             scp.put(server, server)
                             log.write("server deployed\n")
 
-                            scp.put(list_nodes, list_nodes.split('/')[-1])
-                            log.write("nodes list deployed\n")
+                        scp.put(list_nodes, list_nodes.split('/')[-1])
+                        log.write("nodes list deployed\n")
+
+                while True:
+                    stdin, stdout, stderr = connection.exec_command(command_kill)
+                    stdout.channel.recv_exit_status()
+
+                    stdin, stdout, stderr = connection.exec_command(command_check)
+                    if stdout.channel.recv_exit_status() == 1:
+                        log.write("current node killed\n")
+                        break
+
+                if mode != 3:
+                    connection.exec_command(command_start)
 
                     while True:
-                        stdin, stdout, stderr = connection.exec_command(command_kill)
-                        while not stdout.channel.exit_status_ready():
-                            if stdout.channel.exit_status_ready():
-                                break
-
                         stdin, stdout, stderr = connection.exec_command(command_check)
-                        if stdout.channel.recv_exit_status() == 1:
-                            log.write("current node killed\n")
+                        if stdout.channel.recv_exit_status() == 0:
+                            log.write("new node started\n")
                             break
 
-                    if mode != 1:
-                        connection.exec_command(command_start)
-                        log.write("new node started\n")
+                connection.close()
+            else:
+                log.write("failed to connect\n")
+                print "failed to connect to node: " + node
 
-                else:
-                    log.write("failed to connect\n")
-                    print "failed to connect to node: " + node
+            log.write('\n\n')
 
-                log.write('\n\n')
-
-    os.startfile(log_output)
+    # os.startfile(log_output)
     print "\ndone"

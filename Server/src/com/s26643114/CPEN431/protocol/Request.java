@@ -25,9 +25,6 @@ public class Request extends Protocol {
 
     private int requestLength;
 
-    private long end;
-    private long start;
-
     private AtomicBoolean shutdown;
     private BigInteger keyInt;
     private BigInteger uniqueIdInt;
@@ -89,19 +86,20 @@ public class Request extends Protocol {
         if (command <= COMMAND_REMOVE && !Route.checkSelf(key)) {
             convertToInternal();
 
+            long start;
             if (Logger.BENCHMARK_REQUEST)
                 start = System.nanoTime();
 
             Route.route(packet, key);
 
             if (Logger.BENCHMARK_REQUEST) {
-                end = System.nanoTime();
+                long end = System.nanoTime();
                 Logger.benchmark(Logger.TAG_REQUEST, start, end, "route");
             }
 
             return null;
         } else {
-            if (command > MASK_COMMAND) {
+            if (command > MASK_COMMAND && command <= MASK_COMMAND + COMMAND_REMOVE) {
                 configureRouting();
                 command -= MASK_COMMAND;
             }
@@ -152,10 +150,8 @@ public class Request extends Protocol {
     }
 
     private void configureRouting() throws UnknownHostException {
-        Route.ack(packet);
-
-        int ipIndex = requestLength - LENGTH_IP - LENGTH_PORT - LENGTH_INSTANT;
-        int portIndex = requestLength - LENGTH_PORT - LENGTH_INSTANT;
+        int ipIndex = requestLength - LENGTH_IP - LENGTH_PORT;
+        int portIndex = requestLength - LENGTH_PORT;
 
         byte[] ip = new byte[LENGTH_IP];
         System.arraycopy(request, ipIndex, ip, 0, LENGTH_IP);
@@ -171,7 +167,7 @@ public class Request extends Protocol {
     }
 
     private void convertToInternal() {
-        reply = Reply.createInternalReply(packet, System.nanoTime());
+        reply = Reply.createInternalReply(packet);
 
         if (Logger.VERBOSE_REQUEST)
             Logger.log(Logger.TAG_REQUEST, "packet converted to command " + reply[LENGTH_UNIQUE_ID] + " to [" + packet.getAddress().getHostAddress()

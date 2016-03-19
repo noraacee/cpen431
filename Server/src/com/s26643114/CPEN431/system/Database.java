@@ -13,7 +13,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class Database extends Protocol {
     private ConcurrentHashMap<BigInteger, byte[]> cache;
     private ConcurrentHashMap<BigInteger, byte[]> database;
-    private ConcurrentHashMap<Long, AtomicBoolean> internalRequests;
     private ConcurrentLinkedQueue<Client> pool;
     private final ConcurrentLinkedQueue<BigInteger> queue;
 
@@ -24,7 +23,6 @@ public class Database extends Protocol {
     public Database() {
         cache = new ConcurrentHashMap<>();
         database = new ConcurrentHashMap<>();
-        internalRequests = new ConcurrentHashMap<>();
         pool = new ConcurrentLinkedQueue<>();
         queue = new ConcurrentLinkedQueue<>();
 
@@ -172,16 +170,6 @@ public class Database extends Protocol {
     }
 
     /**
-     * Put thread lock into lock store
-     */
-    public AtomicBoolean put(long key, AtomicBoolean lock) {
-        if (Logger.VERBOSE_DATABASE)
-            Logger.log(Logger.TAG_DATABASE, "put internal: " + key);
-
-        return internalRequests.put(key, lock);
-    }
-
-    /**
      * Returns the number of values in the database
      */
     public int size() {
@@ -192,7 +180,6 @@ public class Database extends Protocol {
 
         return size;
     }
-
 
     /**
      * Removes a value from the database
@@ -208,22 +195,6 @@ public class Database extends Protocol {
         }
 
         return removed;
-    }
-
-    /**
-     * Removes and returns a thread lock from the lock store
-     */
-    public AtomicBoolean remove(long key) {
-        AtomicBoolean lock = internalRequests.remove(key);
-
-        if (Logger.VERBOSE_DATABASE) {
-            if (lock == null)
-                Logger.log(Logger.TAG_DATABASE, "remove internal key not found: " + key);
-            else
-                Logger.log(Logger.TAG_DATABASE, "remove internal: " + key);
-        }
-
-        return lock;
     }
 
     /**

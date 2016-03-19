@@ -6,31 +6,28 @@ import com.s26643114.CPEN431.util.Logger;
 import java.net.DatagramPacket;
 
 public class Reply extends Protocol {
-    public static byte[] createInternalReply(DatagramPacket packet, long nanoTime) {
+    public static byte[] createInternalReply(DatagramPacket packet) {
         long start;
-        long end;
-
         if (Logger.BENCHMARK_REPLY)
             start = System.nanoTime();
 
         byte[] reply = packet.getData();
+        int length = packet.getLength() + LENGTH_IP + LENGTH_PORT;
 
-        System.arraycopy(packet.getAddress().getAddress(), 0, reply, packet.getLength(), LENGTH_IP);
+        byte[] ip = packet.getAddress().getAddress();
+        System.arraycopy(ip, 0, reply, packet.getLength(), LENGTH_IP);
         ByteUtil.int2leb(packet.getPort(), reply, packet.getLength() + LENGTH_IP, LENGTH_PORT);
 
         reply[LENGTH_UNIQUE_ID] += MASK_COMMAND;
 
-        long instant = System.currentTimeMillis() * 1000 + (System.nanoTime() - nanoTime) % 1000;
-        ByteUtil.longToByteArray(reply, instant, packet.getLength() + LENGTH_IP + LENGTH_PORT);
-
-        packet.setLength(packet.getLength() + LENGTH_IP + LENGTH_PORT + LENGTH_INSTANT);
+        packet.setLength(length);
 
         if (Logger.VERBOSE_REPLY)
             Logger.log(Logger.TAG_REPLY, "internal reply to [" + packet.getAddress().getHostAddress() + ":" + packet.getPort()
                     + "]: " + packet.getLength());
 
         if (Logger.BENCHMARK_REPLY) {
-            end = System.nanoTime();
+            long end = System.nanoTime();
             Logger.benchmark(Logger.TAG_REPLY, start, end, "internal");
         }
 
@@ -39,8 +36,6 @@ public class Reply extends Protocol {
 
     public static byte[] createReply(DatagramPacket packet, byte[] uniqueId, byte errorCode) {
         long start;
-        long end;
-
         if (Logger.BENCHMARK_REPLY)
             start = System.nanoTime();
 
@@ -57,7 +52,7 @@ public class Reply extends Protocol {
                     + "]: " + packet.getLength());
 
         if (Logger.BENCHMARK_REPLY) {
-            end = System.nanoTime();
+            long end = System.nanoTime();
             Logger.benchmark(Logger.TAG_REPLY, start, end, "error code reply");
         }
 
@@ -66,8 +61,6 @@ public class Reply extends Protocol {
 
     public static byte[] createReply(DatagramPacket packet, byte[] uniqueId, byte[] value) {
         long start;
-        long end;
-
         if (Logger.BENCHMARK_REPLY)
             start = System.nanoTime();
 
@@ -95,7 +88,7 @@ public class Reply extends Protocol {
                     + "]: " + packet.getLength());
 
         if (Logger.BENCHMARK_REPLY) {
-            end = System.nanoTime();
+            long end = System.nanoTime();
             Logger.benchmark(Logger.TAG_REPLY, start, end, "value reply");
         }
 

@@ -19,6 +19,7 @@ public class Server extends Protocol {
     private long start;
 
     private AtomicBoolean shutdown;
+    private AtomicBoolean started;
 
     private Database database;
     private DatagramSocket server;
@@ -30,13 +31,18 @@ public class Server extends Protocol {
 
     public Server(InetAddress ip, int port) throws SocketException {
         shutdown = new AtomicBoolean(false);
+        started = new AtomicBoolean(false);
 
         database = new Database();
         server = new DatagramSocket(port, ip);
+        server.setReceiveBufferSize(SIZE_BUFFER);
+
+        if (Logger.VERBOSE_SERVER)
+            Logger.log(Logger.TAG_SERVER, "receive buffer: " + server.getReceiveBufferSize());
 
         executor = Executors.newFixedThreadPool(SIZE_POOL_THREAD);
 
-        internalServer = new InternalServer(shutdown, database);
+        internalServer = new InternalServer(shutdown, started, ip, port);
         retry = new Retry(shutdown, database);
 
         if (Logger.VERBOSE_SERVER)
@@ -47,7 +53,6 @@ public class Server extends Protocol {
      * Accepts requests from client
      */
     public void accept() {
-        internalServer.start();
         retry.start();
 
         while(!shutdown.get()) {
@@ -62,6 +67,15 @@ public class Server extends Protocol {
                     end = System.nanoTime();
                     Logger.benchmark(Logger.TAG_SERVER, start, end, "receive");
                     start = System.nanoTime();
+                }
+
+                if (!started.get()) {
+                    try {
+                        internalServer.start();
+                    } catch (IllegalThreadStateException e) {
+                        if (Logger.VERBOSE_SERVER)
+                            Logger.log(Logger.TAG_SERVER, e);
+                    }
                 }
 
                 executor.execute(client);
@@ -105,14 +119,6 @@ public class Server extends Protocol {
             Logger.log(Logger.TAG_SERVER, "stopped");
     }
 
-    public String getAddress() {
-        return server.getLocalAddress().getHostAddress() + ":" + Integer.toString(server.getLocalPort());
-    }
-
-    public void removeInternal(long key) {
-        database.remove(key);
-    }
-
     /**
      * Sends a packet using server socket
      */
@@ -126,10 +132,5 @@ public class Server extends Protocol {
             end = System.nanoTime();
             Logger.benchmark(Logger.TAG_SERVER, start, end, "send");
         }
-    }
-
-    public AtomicBoolean sendInternal(DatagramPacket packet, long key, AtomicBoolean lock) throws IOException {
-        internalServer.send(packet, key, lock);
-        return lock;
     }
 }
