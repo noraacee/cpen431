@@ -1,0 +1,39 @@
+home:
+    ubc.ca
+    142.103.59.226
+
+east_a:
+    ec2-54-209-220-245.compute-1.amazonaws.com
+    54.209.220.245
+
+east_c:
+    ec2-52-90-91-74.compute-1.amazonaws.com
+    54.90.91.74
+
+east_d:
+    ec2-54-173-254-163.compute-1.amazonaws.com
+    54.173.254.163
+
+east_e:
+    ec2-54-175-107-242.compute-1.amazonaws.com
+    54.175.107.242
+
+west_a:
+    ec2-54-215-229-242.us-west-1.compute.amazonaws.com
+    54.215.229.242
+
+west_c:
+    ec2-52-53-219-93.us-west-1.compute.amazonaws.com
+    52.53.219.93
+
+west2_a:
+    ec2-52-27-213-97.us-west-2.compute.amazonaws.com
+    52.27.213.97
+
+west2_b:
+    ec2-52-36-0-9.us-west-2.compute.amazonaws.com
+    52.36.0.9
+
+west2_c:
+    ec2-52-36-135-8.us-west-2.compute.amazonaws.com
+    52.36.135.8
