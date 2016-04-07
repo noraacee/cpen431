@@ -20,7 +20,7 @@ public class Base {
     private static final String TIME_ZONE = "UTC-08:00";
 
     public static void main(String[] args) {
-        if (Logger.VERBOSE) {
+        if (Logger.VERBOSE || Logger.BENCHMARK) {
             try {
                 Logger.init();
             } catch (IOException e) {
@@ -56,15 +56,13 @@ public class Base {
 
             Route.init(ip.getHostAddress(), nodesFileName);
             Server server = new Server(ip, port);
-            Route.setServer(server);
             server.accept();
         } catch (Exception e) {
             if (Logger.VERBOSE_BASE)
                 Logger.log(Logger.TAG_BASE, e);
-            e.printStackTrace();
         }
 
-        if (Logger.VERBOSE) {
+        if (Logger.VERBOSE || Logger.BENCHMARK) {
             Logger.log(null, "node shutting down");
             Logger.close();
         }

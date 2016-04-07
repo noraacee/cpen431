@@ -8,9 +8,8 @@ import java.math.BigInteger;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-public class Database extends Protocol {
+public class Database {
     private ConcurrentHashMap<BigInteger, byte[]> cache;
     private ConcurrentHashMap<BigInteger, byte[]> database;
     private ConcurrentLinkedQueue<Client> pool;
@@ -36,7 +35,7 @@ public class Database extends Protocol {
         byte[] value = cache.put(uniqueId, reply);
 
         if (value == null)
-            queue.add(uniqueId);
+            queue.offer(uniqueId);
 
         synchronized (queue) {
             queue.notify();
@@ -110,7 +109,7 @@ public class Database extends Protocol {
         queueFirst = queue.poll();
         byte[] retry = cache.get(queueFirst);
 
-        long timeout = ByteUtil.byteArrayToLong(retry, retry.length - LENGTH_INSTANT) - System.currentTimeMillis();
+        long timeout = ByteUtil.byteArrayToLong(retry, retry.length - Protocol.LENGTH_INSTANT) - System.currentTimeMillis();
 
         if (Logger.VERBOSE_DATABASE)
             Logger.log(Logger.TAG_DATABASE, "timeout: " + timeout + " ms");
@@ -118,18 +117,21 @@ public class Database extends Protocol {
         return timeout;
     }
 
-    public Client pop(Server server, AtomicBoolean shutdown) {
+    /**
+     * Pops an unused client from the client pool or creates a new client if none is available
+     */
+    public Client poll(Server server) {
         if (pool.isEmpty()) {
             if (Logger.VERBOSE_DATABASE)
                 Logger.log(Logger.TAG_DATABASE, "client pool empty");
 
-            return new Client(server, shutdown, this);
+            return new Client(server, this);
         } else {
             try {
-                Client client = pool.remove();
+                Client client = pool.poll();
                 if (poolSize > 0)
                     poolSize--;
-                client.init();
+                client.reset();
 
                 if (Logger.VERBOSE_DATABASE)
                     Logger.log(Logger.TAG_DATABASE, "popped client from pool");
@@ -139,24 +141,9 @@ public class Database extends Protocol {
                 if (Logger.VERBOSE_DATABASE)
                     Logger.log(Logger.TAG_DATABASE, "client pool empty");
 
-                return new Client(server, shutdown, this);
+                return new Client(server, this);
             }
         }
-    }
-
-    public void push(Client client) {
-        if (poolSize >= SIZE_POOL_CLIENT) {
-            if (Logger.VERBOSE_DATABASE)
-                Logger.log(Logger.TAG_DATABASE, "client pool full");
-
-            return;
-        }
-
-        pool.add(client);
-        poolSize++;
-
-        if (Logger.VERBOSE_DATABASE)
-            Logger.log(Logger.TAG_DATABASE, "pushed client to pool");
     }
 
     /**
@@ -167,6 +154,24 @@ public class Database extends Protocol {
             Logger.log(Logger.TAG_DATABASE, "put [" + key + ":" + value.length + "]");
 
         database.put(key, value);
+    }
+
+    /**
+     * Pushes a finished client to the client pool as long as it does not exceed client pool's max size
+     */
+    public void offer(Client client) {
+        if (poolSize >= Protocol.SIZE_POOL_CLIENT) {
+            if (Logger.VERBOSE_DATABASE)
+                Logger.log(Logger.TAG_DATABASE, "client pool full");
+
+            return;
+        }
+
+        pool.offer(client);
+        poolSize++;
+
+        if (Logger.VERBOSE_DATABASE)
+            Logger.log(Logger.TAG_DATABASE, "pushed client to pool");
     }
 
     /**

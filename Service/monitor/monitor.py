@@ -1,26 +1,31 @@
 #!/usr/bin/env python
 
 import os
-import util
+import re
+import subprocess
 import sys
+import util
 import xmlrpclib
-from scp import SCPClient, SCPException
+from scp import SCPException
 
 server = 'https://www.planet-lab.org/PLCAPI/'
-host = '52.53.244.22'  # util.get_ip()
+host = util.get_ip(None)
 username = 'chan.aaron@alumni.ubc.ca'
 password = 'cpen431'
 slice_name = 'ubc_cpen431_8'
 port = '12664'
 
 load_threshold = 100
+ping_threshold = 100
 
 directory = 'monitor'
 output = 'monitor.log'
 nodes_list = 'nodes.list'
 test = 'test.txt'
+java = 'jre.rpm'
 
-command_ping = "ping -i 0.2 -c 5 %s | grep 'rtt'" % host
+command_ping_linux = "ping -c 5 -i 0.2 %s | grep rtt"
+command_ping_windows = "ping %s | grep 'Average'"
 command_uptime = "uptime"
 command_remove = "rm %s"
 command_java = "java -version"
@@ -32,7 +37,7 @@ class Node:
     def __init__(self, node_name, node_ip, node_ping, node_load):
         self.name = node_name
         self.ip = node_ip
-        self.ping = float(node_ping)
+        self.ping = node_ping
         self.load = float(node_load)
 
     def __cmp__(self, other):
@@ -47,8 +52,9 @@ def main():
     os.chdir(directory)
 
     print "Modes:"
-    print "[1] Analyze nodes"
-    print "[2] Generate node list"
+    print "[1] Acquire nodes list"
+    print "[2] Analyze nodes"
+    print "[3] Generate node list"
 
     mode = int(raw_input("\nSelect a mode: "))
 
@@ -75,26 +81,56 @@ def main():
         node_nodes = api_server.GetNodes(auth, node_filter, node_return_fields)
         print "nodes acquired"
 
+        with open(nodes_list, 'w') as node_list:
+            for node in node_nodes:
+                node_list.write(node['hostname'] + '\n')
+    elif mode == 2:
+        node_nodes = []
+        with open(nodes_list, 'r') as nodes:
+            for node in nodes:
+                node_nodes.append(node.strip())
+
         nodes = []
-        test_file = open(test, 'w')
-        test_file.close()
         for node in node_nodes:
-            hostname = node['hostname']
+            hostname = node
             print "analyzing node: " + hostname
+
+            call = subprocess.Popen(command_ping_windows % hostname, shell=True, stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE)
+            out, error = call.communicate()
+            if out:
+                try:
+                    ping = float(re.findall(r"Average = (\d+)", out)[0])
+                    if ping > ping_threshold:
+                        print "skipping node %s with a ping of %d" % (hostname, ping)
+                        continue
+                except IndexError:
+                    ping = float(-1)
+            else:
+                ping = float(-1)
 
             connection = util.connect(hostname)
             if connection is not None:
-                with SCPClient(connection.get_transport()) as scp:
+                if ping == -1:
+                    stdin, stdout, stderr = connection.exec_command(command_ping_linux % host)
+                    stdout.channel.recv_exit_status()
+                    try:
+                        ping = float(stdout.readline().split('=')[1].split('/')[1])
+                        if ping > ping_threshold:
+                            print "skipping node %s with a ping of %d" % (hostname, ping)
+                            connection.close()
+                            continue
+                    except IndexError:
+                        ping = float(-1)
+
+                with util.get_scp(connection) as scp:
                     try:
                         scp.put(test, test)
                     except SCPException:
                         print "skipping node %s because of failed scp" % hostname
+                        connection.close()
                         continue
                 connection.exec_command(command_remove % test)
-
-                stdin, stdout, stderr = connection.exec_command(command_ping)
-                stdout.channel.recv_exit_status()
-                ping = stdout.readline().split('=')[1].split('/')[1]
 
                 stdin, stdout, stderr = connection.exec_command(command_uptime)
                 stdout.channel.recv_exit_status()
@@ -102,7 +138,7 @@ def main():
                 load = uptime[len(uptime) - 1].strip()
                 connection.close()
 
-                if float(load) > load_threshold != -1:
+                if float(load) > load_threshold:
                     print "skipping node %s because it does not meet load threshold" % hostname
                     continue
 
@@ -116,14 +152,11 @@ def main():
             for node in nodes:
                 log.write(node.name + ":" + node.ip + ":" + str(node.ping) + ":" + str(node.load) + '\n')
 
-        os.remove(test)
-        os.startfile(output)
-    elif mode == 2:
+        # os.startfile(output)
+    elif mode == 3:
         number = int(raw_input("Number of nodes to use: "))
         print "\nGenerating nodes list"
 
-        test_file = open(test, 'w')
-        test_file.close()
         with open(output, 'r') as log:
             with open('../' + nodes_list, 'w') as nodes:
                 for i, line in enumerate(log):
@@ -133,46 +166,44 @@ def main():
                         ip = info[1]
                         print "loading node %s:%s" % (hostname, ip)
 
-                        with util.connect(hostname) as connection:
-                            if connection is not None:
-                                stdin, stdout, stderr = connection.exec_command(command_java)
-                                if stdout.channel.recv_exit_status() != 0:
-                                    stdin, stdout, stderr = connection.exec_command(command_remove % 're.rpm')
-                                    stdout.channel.recv_exit_status()
-
-                                    print "downloading java"
-                                    stdin, stdout, stderr = connection.exec_command(command_java_get)
-                                    stdout.channel.recv_exit_status()
-
-                                    if stdout.channel.recv_exit_status() == 0:
-                                        print "installing java"
-                                        stdin, stdout, stderr = connection.exec_command(command_java_install)
-                                        while not stdout.channel.exit_status_ready():
-                                            if stdout.channel.exit_status_ready():
-                                                break
-
-                                        stdin, stdout, stderr = connection.exec_command(command_java)
-                                        if stdout.channel.recv_exit_status() == 0:
-                                            print "java installed"
-                                        else:
-                                            print "skipping node %s because java cannot be installed" % hostname
-                                            number += 1
-                                            continue
-                                    else:
-                                        print "skipping node %s because java cannot be downloaded" % hostname
-                                        number += 1
+                        connection = util.connect(hostname)
+                        if connection is not None:
+                            stdin, stdout, stderr = connection.exec_command(command_java)
+                            if stdout.channel.recv_exit_status() != 0:
+                                with util.get_scp(connection) as scp:
+                                    try:
+                                        scp.put(java, java)
+                                    except SCPException:
+                                        print "skipping node %s because of failed scp" % hostname
+                                        connection.close()
                                         continue
-                            else:
-                                print "skipping node %s because of failed ssh" % hostname
-                                number += 1
-                                continue
+
+                                print "installing java"
+                                stdin, stdout, stderr = connection.exec_command(command_java_install)
+                                while not stdout.channel.exit_status_ready():
+                                    if stdout.channel.exit_status_ready():
+                                        break
+
+                                stdin, stdout, stderr = connection.exec_command(command_java)
+                                if stdout.channel.recv_exit_status() == 0:
+                                    print "java installed"
+                                else:
+                                    print "skipping node %s because java cannot be installed" % hostname
+                                    number += 1
+                                    connection.close()
+                                    continue
+
+                            connection.close()
+                        else:
+                            print "skipping node %s because of failed ssh" % hostname
+                            number += 1
+                            continue
 
                         nodes.write(ip + ":" + port + "\n")
                     else:
                         break
 
-        os.remove(test)
-        os.chdir('..')
-        os.startfile(nodes_list)
+        # os.chdir('..')
+        # os.startfile(nodes_list)
 
     print "\ndone"

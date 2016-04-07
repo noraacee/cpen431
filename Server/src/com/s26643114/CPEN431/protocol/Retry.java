@@ -9,12 +9,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Handles client's retries
  */
 public class Retry extends Thread {
-    private AtomicBoolean shutdown;
+    private volatile boolean running;
+
     private Database database;
 
-    public Retry(AtomicBoolean shutdown, Database database) {
-        this.shutdown = shutdown;
+    public Retry(Database database) {
         this.database = database;
+        running = false;
 
         if (Logger.VERBOSE_RETRY)
             Logger.log(Logger.TAG_RETRY, "started");
@@ -25,9 +26,10 @@ public class Retry extends Thread {
      */
     @Override
     public void run() {
-        long timeout;
+        running = true;
 
-        while(!shutdown.get()) {
+        long timeout;
+        while(running) {
             timeout = database.getTimeout();
 
             if (timeout > 0) {
@@ -50,5 +52,10 @@ public class Retry extends Thread {
 
         if (Logger.VERBOSE_RETRY)
             Logger.log(Logger.TAG_RETRY, "stopped");
+    }
+
+    public void exit() {
+        running = false;
+        interrupt();
     }
 }

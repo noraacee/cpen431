@@ -1,5 +1,6 @@
 package com.s26643114.CPEN431.protocol;
 
+import com.s26643114.CPEN431.distribution.Node;
 import com.s26643114.CPEN431.distribution.Route;
 import com.s26643114.CPEN431.system.Database;
 import com.s26643114.CPEN431.util.ByteUtil;
@@ -10,49 +11,83 @@ import java.math.BigInteger;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Encapsulates a request and its reply
  */
 public class Request extends Protocol {
+    public enum Mode {
+        EXTERNAL, INTERNAL, REPLICATION
+    }
+
+    protected boolean replicate;
+    protected boolean shutdown;
+
+    protected Node[] replicas;
+
     protected Database database;
+    protected Mode mode;
+
+    private boolean self;
 
     private byte[] key;
     private byte[] request;
     private byte[] reply;
     private byte[] uniqueId;
 
+    private int count;
     private int requestLength;
 
-    private AtomicBoolean shutdown;
+    long end;
+    long start;
+
     private BigInteger keyInt;
     private BigInteger uniqueIdInt;
     private DatagramPacket packet;
 
-    public Request(AtomicBoolean shutdown, Database database) {
-        this.shutdown = shutdown;
+    public Request(Database database) {
         this.database = database;
 
+        replicate = false;
+        shutdown = false;
+        replicas = new Node[REPLICATION];
+        mode = Mode.EXTERNAL;
+
+        self = false;
         request = new byte[LENGTH_TOTAL];
+        count = 0;
         packet = new DatagramPacket(request, LENGTH_TOTAL);
         reply = null;
     }
 
+    /**
+     * Gets the packet associated with this request
+     */
     public DatagramPacket getPacket() {
         return packet;
     }
 
-    public void init() {
+    /**
+     * Initializes the request for a new client
+     */
+    public void reset() {
+        replicate = false;
+        mode = Mode.EXTERNAL;
+
+        self = false;
         packet.setData(request);
         reply = null;
+    }
+
+    public void setMode(Mode mode) {
+        this.mode = mode;
     }
 
     /**
      * Rejects the request with the error code
      */
     protected DatagramPacket createReject(byte errorCode) throws UnknownHostException {
-        if (request[LENGTH_UNIQUE_ID] > MASK_COMMAND)
+        if (mode == Mode.INTERNAL)
             configureRouting();
 
         Reply.setReply(packet, errorCode);
@@ -60,49 +95,96 @@ public class Request extends Protocol {
         return packet;
     }
 
-    /**
-     * Parses and completes the request
-     */
-    protected DatagramPacket parse() throws IOException {
+    protected boolean init() {
         requestLength = packet.getLength();
         parseKey();
         parseUniqueId();
 
+        if (uniqueIdInt == null)
+            return false;
+
+        if (Logger.BENCHMARK_REQUEST)
+            start = System.nanoTime();
+
+        reply = database.check(uniqueIdInt);
+
+        if (Logger.BENCHMARK_REQUEST) {
+            end = System.nanoTime();
+            Logger.benchmark(Logger.TAG_REQUEST, start, end, "check cache");
+        }
+
+        if (reply != null)
+            return false;
+
+        self = Route.checkSelf(key);
+
+        Route.route(key, replicas);
+
+        if (mode == Mode.EXTERNAL && self) {
+            byte command = request[LENGTH_UNIQUE_ID];
+
+            if (command == COMMAND_PUT || command == COMMAND_REMOVE)
+                return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Parses and completes the request
+     */
+    protected DatagramPacket parse() throws IOException {
         if (uniqueIdInt == null) {
             Reply.setReply(packet, ERROR_PACKET);
             return packet;
         }
 
-        reply = database.check(uniqueIdInt);
         if (reply != null) {
-            if (request[LENGTH_UNIQUE_ID] > MASK_COMMAND)
+            if (mode == Mode.REPLICATION)
+                return packet;
+            if (mode == Mode.INTERNAL)
                 configureRouting();
 
             Reply.setReply(packet, reply);
+
             return packet;
         }
 
+        if (Logger.BENCHMARK_REQUEST)
+            start = System.nanoTime();
+
         byte command = request[LENGTH_UNIQUE_ID];
-        if (command <= COMMAND_REMOVE && !Route.checkSelf(key)) {
-            convertToInternal();
 
-            long start;
-            if (Logger.BENCHMARK_REQUEST)
-                start = System.nanoTime();
+        if (mode != Mode.INTERNAL && mode != Mode.REPLICATION && command <= COMMAND_REMOVE && !self) {
+            mode = Mode.INTERNAL;
+            reply = Reply.createInternalReply(packet);
 
-            Route.route(packet, key);
+            if (command == COMMAND_GET) {
+                packet.setAddress(replicas[0].getIp());
+                packet.setPort(replicas[0].getPort()+ PORT_INTERNAL);
+
+                count++;
+                if (count == REPLICATION)
+                    count = 0;
+            } else {
+                packet.setAddress(replicas[0].getIp());
+                packet.setPort(replicas[0].getPort() + PORT_INTERNAL);
+                replicate = true;
+            }
+
+            if (Logger.VERBOSE_REQUEST)
+                Logger.log(Logger.TAG_REQUEST, "routed to [" + packet.getAddress().getHostAddress() + ":" + packet.getPort() + "]");
+
 
             if (Logger.BENCHMARK_REQUEST) {
-                long end = System.nanoTime();
+                end = System.nanoTime();
                 Logger.benchmark(Logger.TAG_REQUEST, start, end, "route");
             }
 
-            return null;
+            return packet;
         } else {
-            if (command > MASK_COMMAND && command <= MASK_COMMAND + COMMAND_REMOVE) {
+            if (mode == Mode.INTERNAL)
                 configureRouting();
-                command -= MASK_COMMAND;
-            }
 
             switch (command) {
                 case COMMAND_PUT:
@@ -118,19 +200,28 @@ public class Request extends Protocol {
                     if (Logger.VERBOSE_REQUEST)
                         Logger.log(Logger.TAG_REQUEST, "shut down requested");
 
-                    shutdown.set(true);
+                    shutdown = true;
+
                     Reply.setReply(packet, ERROR_NONE);
                     return packet;
                 case COMMAND_REMOVE_ALL:
                     database.clear();
-                    reply = Reply.createReply(packet, uniqueId, ERROR_NONE);
-                    break;
+                    Reply.setReply(packet, ERROR_NONE);
+                    return packet;
+                case COMMAND_PID:
+                    Reply.setReply(packet, PID);
+                    return packet;
                 default:
                     if (Logger.VERBOSE_REQUEST)
                         Logger.log(Logger.TAG_REQUEST, "command " + command + " not found: " + uniqueIdInt);
 
                     reply = Reply.createReply(packet, uniqueId, ERROR_COMMAND);
                     break;
+            }
+
+            if (Logger.BENCHMARK_REQUEST) {
+                end = System.nanoTime();
+                Logger.benchmark(Logger.TAG_REQUEST, start, end, "process command");
             }
 
             cache();
@@ -149,6 +240,9 @@ public class Request extends Protocol {
         database.cache(uniqueIdInt, reply);
     }
 
+    /**
+     * Configures an internally routed request to return to the original sender
+     */
     private void configureRouting() throws UnknownHostException {
         int ipIndex = requestLength - LENGTH_IP - LENGTH_PORT;
         int portIndex = requestLength - LENGTH_PORT;
@@ -166,20 +260,15 @@ public class Request extends Protocol {
                     + "]: " + uniqueIdInt);
     }
 
-    private void convertToInternal() {
-        reply = Reply.createInternalReply(packet);
-
-        if (Logger.VERBOSE_REQUEST)
-            Logger.log(Logger.TAG_REQUEST, "packet converted to command " + reply[LENGTH_UNIQUE_ID] + " to [" + packet.getAddress().getHostAddress()
-                    + ": " + packet.getPort() + "]: " + uniqueIdInt);
-    }
-
     /**
      * Get value from store with given key
      */
     private byte[] get() {
-        if (keyInt == null)
+        if (keyInt == null) {
+            if (Logger.VERBOSE_REQUEST)
+                Logger.log(Logger.TAG_REQUEST, "no key for get");
             return Reply.createReply(packet, uniqueId, ERROR_KEY);
+        }
 
         byte[] value = database.get(keyInt);
 
@@ -193,9 +282,6 @@ public class Request extends Protocol {
      */
     private void parseKey() {
         if (requestLength < LENGTH_UNIQUE_ID + LENGTH_CODE + LENGTH_KEY) {
-            if (Logger.VERBOSE_REQUEST)
-                Logger.log(Logger.TAG_REQUEST, "no key to parse");
-
             key = null;
             keyInt = null;
             return;
@@ -228,8 +314,11 @@ public class Request extends Protocol {
      * Put key-value pair into store
      */
     private byte[] put()  {
-        if (keyInt == null)
+        if (keyInt == null) {
+            if (Logger.VERBOSE_REQUEST)
+                Logger.log(Logger.TAG_REQUEST, "no key for put");
             return Reply.createReply(packet, uniqueId, ERROR_KEY);
+        }
 
         // Checks if packet contains a value to put
         if (requestLength <= LENGTH_UNIQUE_ID + LENGTH_CODE + LENGTH_KEY + LENGTH_VALUE_LENGTH) {
@@ -276,8 +365,11 @@ public class Request extends Protocol {
      * Remove key-value pair from store
      */
     private byte[] remove() {
-        if (keyInt == null)
+        if (keyInt == null) {
+            if (Logger.VERBOSE_REQUEST)
+                Logger.log(Logger.TAG_REQUEST, "no key for remove");
             return Reply.createReply(packet, uniqueId, ERROR_KEY);
+        }
 
         byte[] removed = database.remove(keyInt);
 

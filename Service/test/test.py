@@ -14,14 +14,13 @@ command_test = "java -jar %s %s "
 
 
 def main():
-
     os.chdir(directory)
 
     tests = []
     with open(tests_list, 'r') as tests_file:
         for line in tests_file:
             arguments = line.split(":")
-            tests.append([arguments[1], arguments[2], arguments[3].rstrip('\n')])
+            tests.append([arguments[1], arguments[2], arguments[3].strip()])
 
     print "Available tests:"
     for i, test in enumerate(tests):
@@ -46,6 +45,6 @@ def main():
         else:
             call(command_test % (tests[test_number][0], nodes_list))
 
-    os.startfile(output)
+    # os.startfile(output)
 
     print "\ndone"

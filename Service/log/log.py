@@ -63,6 +63,6 @@ def main():
                     print "failed to connect to node: " + node
 
     os.remove('tmp_' + log_server)
-    os.startfile(log_server)
+    # os.startfile(log_server)
 
     print "\ndone"

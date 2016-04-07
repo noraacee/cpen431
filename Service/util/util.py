@@ -6,15 +6,14 @@ from scp import SCPClient
 username = 'ubc_cpen431_8'
 password = 'CPEN431'
 key = '../../Key/cpen431key'
+timeout = 30
 
 
 def connect(hostname):
-    if '127' in hostname:
-        return None
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     try:
-        ssh.connect(hostname, username=username, password=password, key_filename=key, timeout=30)
+        ssh.connect(hostname, username=username, password=password, key_filename=key, timeout=timeout)
         return ssh
     except (paramiko.BadHostKeyException, paramiko.AuthenticationException, paramiko.SSHException, socket.error):
         return connect_ec2(hostname)
@@ -61,4 +60,4 @@ def connect_ec2(hostname):
 
 
 def get_scp(connection):
-    return SCPClient(connection.get_transport(), socket_timeout=60)
+    return SCPClient(connection.get_transport(), socket_timeout=timeout)
