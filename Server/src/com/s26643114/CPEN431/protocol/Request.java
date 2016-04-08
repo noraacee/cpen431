@@ -25,6 +25,7 @@ public class Request extends Protocol {
 
     protected Node[] replicas;
 
+    protected BigInteger nodeKey;
     protected Database database;
     protected Mode mode;
 
@@ -51,6 +52,7 @@ public class Request extends Protocol {
         replicate = false;
         shutdown = false;
         replicas = new Node[REPLICATION];
+        nodeKey = Route.getSelfKey();
         mode = Mode.EXTERNAL;
 
         self = false;
@@ -116,9 +118,15 @@ public class Request extends Protocol {
         if (reply != null)
             return false;
 
-        self = Route.checkSelf(key);
-
         Route.route(key, replicas);
+
+        for (int i = 0; i < Protocol.REPLICATION; i++) {
+            if (replicas[i].getNodeKey().equals(nodeKey)) {
+                replicas[i] = null;
+                self = true;
+                break;
+            }
+        }
 
         if (mode == Mode.EXTERNAL && self) {
             byte command = request[LENGTH_UNIQUE_ID];
@@ -169,6 +177,7 @@ public class Request extends Protocol {
             } else {
                 packet.setAddress(replicas[0].getIp());
                 packet.setPort(replicas[0].getPort() + PORT_INTERNAL);
+                replicas[0] = null;
                 replicate = true;
             }
 

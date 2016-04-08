@@ -157,9 +157,16 @@ public class Circle {
     }
 
     /**
+     * Gets the self key
+     */
+    public BigInteger getSelfKey() {
+        return self;
+    }
+
+    /**
      * Gets the self node
      */
-    public Node getSelf() {
+    public Node getSelfNode() {
         return nodes.get(self);
     }
 

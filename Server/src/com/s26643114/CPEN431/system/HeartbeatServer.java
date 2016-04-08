@@ -31,7 +31,7 @@ public class HeartbeatServer extends Thread {
             Logger.log(Logger.TAG_HEARTBEAT, "receive buffer: " + heartbeatServer.getReceiveBufferSize());
 
         heartbeats = Route.getHeartbeats();
-        self = Route.getSelf();
+        self = Route.getSelfNode();
 
         heartbeatThread = new Heartbeat(heartbeatServer, heartbeats);
         new Thread(heartbeatThread).start();
