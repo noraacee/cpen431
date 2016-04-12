@@ -39,11 +39,11 @@ def main():
         global command_test
         if submit == 'y':
             command_test += secret
-
+        
         if tests[test_number][1] == 'y':
-            call(command_test % (tests[test_number][0], nodes_list), stdout=log, stderr=log)
+            call(command_test % (tests[test_number][0], nodes_list), shell=True, stdout=log, stderr=log)
         else:
-            call(command_test % (tests[test_number][0], nodes_list))
+            call(command_test % (tests[test_number][0], nodes_list), shell=True)
 
     # os.startfile(output)
 

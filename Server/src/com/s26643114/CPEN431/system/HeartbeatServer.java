@@ -75,7 +75,7 @@ public class HeartbeatServer extends Thread {
                 packet.setPort(node.getPort() + Protocol.PORT_HEARTBEAT);
 
                 int i = 0;
-                for (Map.Entry<BigInteger, Node> entry: heartbeats.entrySet()) {
+                for (Map.Entry<BigInteger, Node> entry : heartbeats.entrySet()) {
                     Node n = entry.getValue();
                     System.arraycopy(n.getIp().getAddress(), 0, data, i, Protocol.LENGTH_IP);
                     ByteUtil.longToByteArray(data, n.getHeartbeat(), i + Protocol.LENGTH_IP);
@@ -98,7 +98,7 @@ public class HeartbeatServer extends Thread {
 
                 if (Logger.VERBOSE_HEARTBEAT)
                     Logger.log(Logger.TAG_HEARTBEAT, "heartbeats sent to node [" + packet.getAddress().getHostAddress()
-                            + ":" + packet  .getPort() + "]");
+                            + ":" + packet.getPort() + "]");
 
                 Route.checkNodes();
                 sleep(Protocol.TIME_HEARTBEAT);
@@ -137,17 +137,13 @@ public class HeartbeatServer extends Thread {
 
     private class Heartbeat implements Runnable {
         private volatile boolean running;
-        private int size;
 
-        private DatagramPacket packet;
-        private DatagramSocket internalServer;
+        private DatagramSocket heartbeatServer;
         private Map<BigInteger, Node> heartbeats;
 
-        public Heartbeat(DatagramSocket internalServer, Map<BigInteger, Node> heartbeats) {
-            this.internalServer = internalServer;
+        public Heartbeat(DatagramSocket heartbeatServer, Map<BigInteger, Node> heartbeats) {
+            this.heartbeatServer = heartbeatServer;
             this.heartbeats = heartbeats;
-            size = heartbeats.size() * Protocol.LENGTH_HEARTBEAT;
-            packet = new DatagramPacket(new byte[size], size);
 
             running = false;
         }
@@ -169,11 +165,15 @@ public class HeartbeatServer extends Thread {
             if (Logger.VERBOSE_HEARTBEAT)
                 Logger.log(Logger.TAG_HEARTBEAT, "starting heartbeat receive");
 
+            int size = heartbeats.size() * Protocol.LENGTH_HEARTBEAT;
+
             byte[] ip = new byte[Protocol.LENGTH_IP];
+            byte[] data = new byte[size];
+            DatagramPacket packet = new DatagramPacket(data, size);
             while (running) {
                 try {
                     packet.setLength(size);
-                    internalServer.receive(packet);
+                    heartbeatServer.receive(packet);
 
                     start();
 
@@ -181,7 +181,6 @@ public class HeartbeatServer extends Thread {
                         Logger.log(Logger.TAG_HEARTBEAT, "heartbeats received from node [" + packet.getAddress().getHostAddress()
                                 + ":" + packet.getPort() + "]");
 
-                    byte[] data = packet.getData();
                     for (int i = 0; i < packet.getLength(); i += Protocol.LENGTH_HEARTBEAT) {
                         System.arraycopy(data, i, ip, 0, Protocol.LENGTH_IP);
                         BigInteger key = new BigInteger(ip);

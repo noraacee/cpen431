@@ -51,7 +51,7 @@ public class Protocol {
     public static final int PORT_INTERNAL = 1;      // port addition for internal server socket
     public static final int PORT_REPLICATION = 2;   // port addition for replication server socket
     public static final int PORT_HEARTBEAT = 3;     // port addition for heartbeat server socket
-    public static final int REPLICATION = 3;        // number of replications
+    public static final int REPLICATION = 1;        // number of replications
     //public static final int RETRIES = 3;            // number of retries for crashed node
     public static final int SIZE_BUFFER = 131071;   // receive buffer for packets
     public static final int SIZE_POOL_CLIENT = 128; // size of pool of clients to reuse

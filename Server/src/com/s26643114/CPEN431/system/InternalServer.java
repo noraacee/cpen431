@@ -118,9 +118,9 @@ public class InternalServer extends Thread {
     }
 
     public void sendReplicas(DatagramPacket packet, Node[] replicas) throws IOException {
-        for (Node n : replicas) {
-            if (n != null)
-                replicationServer.send(packet, n);
+        for (int i = 0; i < Protocol.REPLICATION; i++) {
+            if (replicas[i] != null)
+                replicationServer.send(packet, replicas[i]);
         }
     }
 }

@@ -14,10 +14,10 @@ public class Logger {
     public static final boolean BENCHMARK_ROUTE       = BENCHMARK && false;
     public static final boolean BENCHMARK_SERVER      = BENCHMARK && true;
 
-    public static final boolean VERBOSE             = false;
+    public static final boolean VERBOSE             = true;
     public static final boolean VERBOSE_BASE        = VERBOSE && false;
     public static final boolean VERBOSE_CIRCLE      = VERBOSE && false;
-    public static final boolean VERBOSE_CLIENT      = VERBOSE && false;
+    public static final boolean VERBOSE_CLIENT      = VERBOSE && true;
     public static final boolean VERBOSE_DATABASE    = VERBOSE && false;
     public static final boolean VERBOSE_HEARTBEAT   = VERBOSE && false;
     public static final boolean VERBOSE_INTERNAL    = VERBOSE && true;

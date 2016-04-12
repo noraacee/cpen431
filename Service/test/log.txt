@@ -1,6 +1,98 @@
 CPEN 431 Test Client
-Build Date: Fri Mar 18 03:23:09 PDT 2016
-[A6 Tests]
+Build Date: Thu Apr 07 06:39:45 UTC 2016
+Java process ID: 124769
+[A7 Tests]
+Short Version (No Performance Tests)
+Note: Result submission has been disabled!
+Secret: 0
+Exclude 256 clients tests: false
+
+Failed to reach host: #129.97.74.14
+Excluding from the server node list ... 
 Done building node list.
-The deployment has 21 server nodes.
+The deployment has 20 server nodes.
+Warning! It is recommended to run on 30+ nodes to submit.
+A7 test application targets 30+ nodes.
+If you want to test on a smaller deployment, please use the test application from A5.
 Checking if server is up... 
+[ ... Completed in 0.032 seconds ]
+[OK]
+Sending WIPEOUT to all servers... 
+[ ... Completed in 0.127 seconds ]
+[OK]
+
+[ TEST Single Front-End Basic (PUT -> GET -> REM -> REM -> GET). Value Length = 8 Bytes ]
+TEST_PASSED
+
+[ TEST Single Front-End Basic (PUT -> GET -> REM -> REM -> GET). Value Length = 32 Bytes ]
+TEST_PASSED
+
+[ TEST Single Front-End Basic (PUT -> GET -> REM -> REM -> GET). Value Length = 2048 Bytes ]
+TEST_PASSED
+
+[ TEST Single Front-End Basic (PUT -> GET -> REM -> REM -> GET). Value Length = 10000 Bytes ]
+TEST_PASSED
+[ ... TEST Completed in 1.312 seconds ]
+
+[ TEST Random Front-End Basic (PUT -> GET -> REM -> REM -> GET). Value Length = 8 Bytes ]
+TEST_PASSED
+
+[ TEST Random Front-End Basic (PUT -> GET -> REM -> REM -> GET). Value Length = 32 Bytes ]
+TEST_PASSED
+
+[ TEST Random Front-End Basic (PUT -> GET -> REM -> REM -> GET). Value Length = 2048 Bytes ]
+TEST_PASSED
+
+[ TEST Random Front-End Basic (PUT -> GET -> REM -> REM -> GET). Value Length = 10000 Bytes ]
+TEST_PASSED
+[ ... TEST Completed in 1.593 seconds ]
+
+[ TEST Single Server At-Most-Once Client Policy (PUT -> REM -> REM) ]
+TEST_PASSED
+[ ... TEST Completed in 0.126 seconds ]
+Sending GETPID to all servers... 
+>>> Server node 165.230.49.118 process ID 5623.
+>>> Server node 165.230.49.114 process ID 12713.
+>>> Server node 192.52.240.214 process ID 15988.
+>>> Server node 165.230.49.115 process ID 26014.
+>>> Server node 170.140.119.69 process ID 17062.
+>>> Server node 170.140.119.70 process ID 7345.
+>>> Server node 216.48.80.14 process ID 10355.
+>>> Server node 149.43.80.20 process ID 21833.
+>>> Server node 216.48.80.12 process ID 18664.
+>>> Server node 141.212.113.178 process ID 18084.
+>>> Server node 156.56.250.226 process ID 6448.
+>>> Server node 156.56.250.227 process ID 21260.
+>>> Server node 155.225.2.72 process ID 7463.
+>>> Server node 129.22.150.78 process ID 3150.
+>>> Server node 198.133.224.147 process ID 31561.
+>>> Server node 139.78.141.243 process ID 17388.
+>>> Server node 129.93.229.138 process ID 6469.
+>>> Server node 129.93.229.139 process ID 30554.
+>>> Server node 129.110.125.52 process ID 11350.
+>>> Server node 129.107.35.132 process ID 24544.
+[ ... Completed in 0.046 seconds ]
+[OK]
+Sending WIPEOUT to all servers... 
+[ ... Completed in 0.049 seconds ]
+[OK]
+
+[ TEST Capacity Insert (Value Size = 10000 bytes, Limit = 2000 PUTs, ~19.07 MiB) ]
+Issuing puts... 
+[DONE in 47.573s]
+Confirming... 
+ERROR_NO_KEY
+Received error code.
+ERROR_NO_KEY
+Received error code.
+ERROR_NO_KEY
+Received error code.
+ERROR_NO_KEY
+Received error code.
+ERROR_NO_KEY
+Received error code.
+ERROR_NO_KEY
+Received error code.
+Test Failed.
+Capacity insert failed. Aborting.
+Testing completed in 61.526s

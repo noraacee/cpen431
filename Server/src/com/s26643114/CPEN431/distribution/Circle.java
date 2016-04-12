@@ -49,14 +49,6 @@ public class Circle {
         }
     }
 
-
-    /**
-     * Checks if key matches self
-     */
-    public boolean checkSelf(byte[] key) {
-        return key == null || self.equals(getNodeKey(key));
-    }
-
     /**
      * Get the heartbeats of all nodes to send
      */
@@ -91,69 +83,41 @@ public class Circle {
             return null;
 
         try {
-            if (!nodes.containsKey(nodeKey)) {
-                ConcurrentNavigableMap<BigInteger, Node> tailMap = nodes.tailMap(nodeKey);
-                if (tailMap.isEmpty()) {
-                    nodeKey = nodes.firstKey();
+            ConcurrentNavigableMap<BigInteger, Node> tailMap = nodes.tailMap(nodeKey);
+            if (tailMap.isEmpty()) {
+                for (int i = 0; i < Protocol.REPLICATION; i++) {
+                    Node n = keySet.get(i);
+                    if (Logger.VERBOSE_CIRCLE)
+                        Logger.log(Logger.TAG_CIRCLE, "replicate node: [" + n.getIp().getHostAddress() + ":" + n.getPort() + "]");
 
-                    for (int i = 1; i < Protocol.REPLICATION; i++) {
-                        Node node = keySet.get(i);
-                        if (Logger.VERBOSE_CIRCLE)
-                            Logger.log(Logger.TAG_CIRCLE, "replicate node: [" + node.getIp().getHostAddress() + ":" + node.getPort() + "]");
+                    replicas[i] = n;
+                }
+            } else {
+                int i = 0;
+                for (Node n : tailMap.values()) {
+                    if (i == Protocol.REPLICATION)
+                        break;
 
-                        replicas[i] = node;
-                    }
-                } else {
-                    nodeKey = tailMap.firstKey();
+                    replicas[i] = n;
+                    if (Logger.VERBOSE_CIRCLE)
+                        Logger.log(Logger.TAG_CIRCLE, "replicate node: [" + n.getIp().getHostAddress() + ":" + n.getPort() + "]");
 
-                    int i = 0;
-                    for (Node node : tailMap.values()) {
-                        if (i == Protocol.REPLICATION)
-                            break;
+                    i++;
+                }
 
-                        if (i != 0) {
-                            replicas[i] = node;
-                            if (Logger.VERBOSE_CIRCLE)
-                                Logger.log(Logger.TAG_CIRCLE, "replicate node: [" + node.getIp().getHostAddress() + ":" + node.getPort() + "]");
-                        }
+                for (int j = 0; i + j < Protocol.REPLICATION; j++) {
+                    Node n = keySet.get(j);
+                    if (Logger.VERBOSE_CIRCLE)
+                        Logger.log(Logger.TAG_CIRCLE, "replicate node: [" + n.getIp().getHostAddress() + ":" + n.getPort() + "]");
 
-                        i++;
-                    }
-
-                    if (i != Protocol.REPLICATION) {
-                        for (int j = 0; j + i < Protocol.REPLICATION; j++) {
-                            Node node = keySet.get(j);
-                            if (Logger.VERBOSE_CIRCLE)
-                                Logger.log(Logger.TAG_CIRCLE, "replicate node: [" + node.getIp().getHostAddress() + ":" + node.getPort() + "]");
-
-                            replicas[i + j] = node;
-                        }
-                    }
+                    replicas[i + j] = n;
                 }
             }
         } catch (NoSuchElementException e) {
             return getNode(key, replicas);
         }
 
-        Node node = nodes.get(nodeKey);
-        replicas[0] = node;
-
-        if (Logger.VERBOSE_CIRCLE)
-            Logger.log(Logger.TAG_CIRCLE, "retrieved node [" + node.getIp().getHostAddress() + ":" + node.getPort() + "]");
-
-        return node;
-    }
-
-    /**
-     * Get the node key corresponding to the key in the request
-     */
-    public BigInteger getNodeKey(byte[] key) {
-        BigInteger nodeKey = hash(key);
-
-        if (nodeKey == null)
-            return null;
-
-        return getNodeKey(nodeKey);
+        return replicas[0];
     }
 
     /**
@@ -181,22 +145,6 @@ public class Circle {
     }
 
     /**
-     * Gets the node key corresponding to the hash of the key in the request
-     */
-    private BigInteger getNodeKey(BigInteger key) {
-        try {
-            if (!nodes.containsKey(key)) {
-                ConcurrentNavigableMap<BigInteger, Node> tailMap = nodes.tailMap(key);
-                key = tailMap.isEmpty() ? nodes.firstKey() : tailMap.firstKey();
-            }
-        } catch (NoSuchElementException e) {
-            return getNodeKey(key);
-        }
-
-        return key;
-    }
-
-    /**
      * Hash a request key
      */
     private BigInteger hash(byte[] key) {
@@ -208,9 +156,7 @@ public class Circle {
         }
 
         md.update(key);
-        BigInteger hash = new BigInteger(md.digest());
-        md.reset();
-        return hash;
+        return new BigInteger(md.digest());
     }
 
     /**
@@ -256,6 +202,11 @@ public class Circle {
 
         keySet.addAll(nodes.values());
 
+        if (Logger.VERBOSE) {
+            for (int i = 0; i < keySet.size(); i++)
+                Logger.log(Logger.TAG_CIRCLE, "node " + i + ": " + keySet.get(i).getIp().getHostAddress());
+        }
+
         for (int i = 0; i < keySet.size(); i++) {
             if (self.equals(keySet.get(i).getNodeKey())) {
                 indexSelf = i;
@@ -277,7 +228,8 @@ public class Circle {
         heartbeats.remove(heartbeatKey);
         Node node = nodes.remove(nodeKey);
 
-        Logger.log(Logger.TAG_CIRCLE, "removed node [" + node.getIp().getHostAddress() + ":" + node.getPort() + "]");
+        if (Logger.VERBOSE)
+            Logger.log(Logger.TAG_CIRCLE, "removed node [" + node.getIp().getHostAddress() + ":" + node.getPort() + "]");
 
         if (index < indexSelf)
             indexSelf--;

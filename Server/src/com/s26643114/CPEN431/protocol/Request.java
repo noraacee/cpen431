@@ -118,21 +118,34 @@ public class Request extends Protocol {
         if (reply != null)
             return false;
 
-        Route.route(key, replicas);
 
-        for (int i = 0; i < Protocol.REPLICATION; i++) {
-            if (replicas[i].getNodeKey().equals(nodeKey)) {
-                replicas[i] = null;
-                self = true;
-                break;
+        byte command = request[LENGTH_UNIQUE_ID];
+        if (command <= COMMAND_REMOVE) {
+            Route.route(key, replicas);
+
+            for (int i = 0; i < Protocol.REPLICATION; i++) {
+                if (replicas[i].getNodeKey().equals(nodeKey)) {
+                    replicas[i] = null;
+                    self = true;
+                    break;
+                }
             }
-        }
 
-        if (mode == Mode.EXTERNAL && self) {
-            byte command = request[LENGTH_UNIQUE_ID];
+            if (mode == Mode.EXTERNAL && self) {
+                if (command == COMMAND_PUT || command == COMMAND_REMOVE) {
+                    if (Logger.VERBOSE_REQUEST) {
+                        for (int i = 0; i < Protocol.REPLICATION; i++) {
+                        if (replicas[i] == null)
+                            Logger.log(Logger.TAG_REQUEST, "self: " + uniqueIdInt);
+                        else
+                            Logger.log(Logger.TAG_REQUEST, "replicating to [" + replicas[i].getIp().getHostAddress() + ":"
+                                    + replicas[i].getPort() + "]: " + uniqueIdInt);
+                    }
+                }
 
-            if (command == COMMAND_PUT || command == COMMAND_REMOVE)
-                return true;
+                    return true;
+                }
+            }
         }
 
         return false;
@@ -175,6 +188,12 @@ public class Request extends Protocol {
                 if (count == REPLICATION)
                     count = 0;
             } else {
+                if (Logger.VERBOSE_REQUEST) {
+                    for (int i = 0; i < REPLICATION; i++)
+                        Logger.log(Logger.TAG_REQUEST, "replicating to [" + replicas[i].getIp().getHostAddress() + ":"
+                                + replicas[i].getPort() + "]: " + uniqueIdInt);
+                }
+
                 packet.setAddress(replicas[0].getIp());
                 packet.setPort(replicas[0].getPort() + PORT_INTERNAL);
                 replicas[0] = null;
@@ -281,8 +300,12 @@ public class Request extends Protocol {
 
         byte[] value = database.get(keyInt);
 
-        if (value == null)
+        if (value == null) {
+            if (Logger.VERBOSE_REQUEST)
+                Logger.log(Logger.TAG_REQUEST, "cannot get key: " + keyInt);
+
             return Reply.createReply(packet, uniqueId, ERROR_KEY);
+        }
         return Reply.createReply(packet, uniqueId, value);
     }
 
@@ -367,6 +390,9 @@ public class Request extends Protocol {
 
         database.put(keyInt, value);
 
+        if (Logger.VERBOSE_REQUEST)
+            Logger.log(Logger.TAG_REQUEST, "put [" + uniqueIdInt + ":" + keyInt + "]");
+
         return Reply.createReply(packet, uniqueId, ERROR_NONE);
     }
 
@@ -384,6 +410,10 @@ public class Request extends Protocol {
 
         if (removed == null)
             return Reply.createReply(packet, uniqueId, ERROR_KEY);
+
+        if (Logger.VERBOSE_REQUEST)
+            Logger.log(Logger.TAG_REQUEST, "remove: " + keyInt);
+
         return Reply.createReply(packet, uniqueId, ERROR_NONE);
     }
 }

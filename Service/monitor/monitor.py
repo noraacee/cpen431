@@ -16,7 +16,7 @@ slice_name = 'ubc_cpen431_8'
 port = '12664'
 
 load_threshold = 100
-ping_threshold = 100
+ping_threshold = 50
 
 directory = 'monitor'
 output = 'monitor.log'
@@ -24,7 +24,7 @@ nodes_list = 'nodes.list'
 test = 'test.txt'
 java = 'jre.rpm'
 
-command_ping_linux = "ping -c 5 -i 0.2 %s | grep rtt"
+command_ping_linux = "ping -c 5 -i 0.2 -p 12664 %s | grep rtt"
 command_ping_windows = "ping %s | grep 'Average'"
 command_uptime = "uptime"
 command_remove = "rm %s"
@@ -95,12 +95,12 @@ def main():
             hostname = node
             print "analyzing node: " + hostname
 
-            call = subprocess.Popen(command_ping_windows % hostname, shell=True, stdout=subprocess.PIPE,
+            call = subprocess.Popen(command_ping_linux % hostname, shell=True, stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE)
             out, error = call.communicate()
             if out:
                 try:
-                    ping = float(re.findall(r"Average = (\d+)", out)[0])
+                    ping = float(out.split('=')[1].split('/')[1])
                     if ping > ping_threshold:
                         print "skipping node %s with a ping of %d" % (hostname, ping)
                         continue

@@ -6,7 +6,7 @@ from scp import SCPClient
 username = 'ubc_cpen431_8'
 password = 'CPEN431'
 key = '../../Key/cpen431key'
-timeout = 30
+timeout = 15
 
 
 def connect(hostname):
