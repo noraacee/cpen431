@@ -1,4 +1,4 @@
-CPEN 431 Test Client
+CPEN 431 com.s26643114.CPEN431.test.Test Client
 Build Date: Thu Apr 07 06:39:45 UTC 2016
 Java process ID: 124769
 [A7 Tests]
@@ -93,6 +93,6 @@ ERROR_NO_KEY
 Received error code.
 ERROR_NO_KEY
 Received error code.
-Test Failed.
+com.s26643114.CPEN431.test.Test Failed.
 Capacity insert failed. Aborting.
 Testing completed in 61.526s

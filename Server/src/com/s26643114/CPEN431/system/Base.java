@@ -1,6 +1,7 @@
 package com.s26643114.CPEN431.system;
 
 import com.s26643114.CPEN431.distribution.Route;
+import com.s26643114.CPEN431.protocol.Protocol;
 import com.s26643114.CPEN431.util.Logger;
 
 import java.io.IOException;
@@ -13,8 +14,6 @@ import java.time.format.DateTimeFormatter;
  * Base with key-value store service
  */
 public class Base {
-    private static final int PORT = 12664;
-
     private static final String FILENAME_NODES = "nodes.list";
     private static final String PATTERN_DATE_TIME = "yyyy-MM-dd HH:mm:ss";
     private static final String TIME_ZONE = "UTC-08:00";
@@ -36,7 +35,7 @@ public class Base {
             switch (args.length) {
                 case 1:
                     nodesFileName = args[0];
-                    port = PORT;
+                    port = Protocol.PORT;
                     break;
                 case 2:
                     nodesFileName = args[0];
@@ -44,7 +43,7 @@ public class Base {
                     break;
                 default:
                     nodesFileName = FILENAME_NODES;
-                    port = PORT;
+                    port = Protocol.PORT;
                     break;
             }
 

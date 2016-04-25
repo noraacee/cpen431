@@ -48,6 +48,7 @@ public class Protocol {
             + LENGTH_VALUE + LENGTH_IP + LENGTH_PORT + LENGTH_INSTANT;
 
     public static final int MAX_STORE = 100000;     // max number of key-value pairs in store
+    public static final int PORT = 12664;           // base port for server socket
     public static final int PORT_INTERNAL = 1;      // port addition for internal server socket
     public static final int PORT_REPLICATION = 2;   // port addition for replication server socket
     public static final int PORT_HEARTBEAT = 3;     // port addition for heartbeat server socket
